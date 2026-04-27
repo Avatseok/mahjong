@@ -47,7 +47,8 @@
                 <button class="year-btn px-5 py-2 rounded-full bg-emerald-800 text-white font-black text-xs opacity-60" onclick="updateRank('2025', this)">2025</button>
                 <button class="year-btn px-5 py-2 rounded-full bg-emerald-800 text-white font-black text-xs opacity-60" onclick="updateRank('2024', this)">2024</button>
             </div>
-            <div class="tile-card bg-white overflow-hidden shadow-xl max-w-2xl mx-auto">
+            <div class="tile-card bg-white p-5 shadow-sm flex flex-col border-l-8 border-emerald-500 hover:shadow-md transition-shadow cursor-pointer" 
+     onclick="showPlayerStats('${p.name}')">
                 <div id="rankContainer" class="divide-y divide-gray-100"></div>
             </div>
         </div>
@@ -224,6 +225,18 @@
             btn.classList.add('active');
         }
 
+        function showPlayerStats(playerName) {
+    // 1. 執行渲染該玩家的戰績
+    renderPersonal(playerName);
+    
+    // 2. 自動切換 Tab 到「個人戰績」分頁
+    // 假設你原本切換 Tab 的函數叫 switchTab
+    switchTab('personal'); 
+    
+    // 3. 畫面自動捲動到最頂
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
         function updateRank(year, btn) {
             document.querySelectorAll('.year-btn').forEach(b => b.classList.add('opacity-60'));
             btn.classList.remove('opacity-60');
@@ -365,9 +378,13 @@
     }).join('');
 }
         // 呢段係新加嘅，直接貼喺 script 入面就得
-function renderPersonal() {
+function renderPersonal(targetName) {
     const container = document.getElementById('personalHero');
-    const p = playerStats['Ava'];
+    
+    // 如果冇傳入名（例如直接撳 Tab），就預設顯示你 Ava
+    const nameToShow = targetName || 'Ava';
+    const p = playerStats[nameToShow];
+    
     if (!p) return;
 
     // 處理玄學數據：排序搵出最強貴人同剋星
