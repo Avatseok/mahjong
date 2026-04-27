@@ -195,33 +195,24 @@
             p.total += me.score;
             p.games += 1;
 
-            // 連勝與年度邏輯 (保留不變)
             if (me.score > 0) {
                 p.wins += 1;
                 p.currentStreak++;
                 if (p.currentStreak > p.maxStreak) p.maxStreak = p.currentStreak;
             } else { p.currentStreak = 0; }
+            
             if (me.score > p.maxWin) p.maxWin = me.score;
             if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
             p.yearly[match.year].score += me.score;
             p.yearly[match.year].games += 1;
             p.typeBreakdown[match.type.toLowerCase()] = (p.typeBreakdown[match.type.toLowerCase()] || 0) + me.score;
 
-            // --- 新的「貴人/天敵」計法 ---
+            // --- 精確錢包流向計法 ---
             matchSummary.forEach(other => {
                 if (me.name === other.name) return;
-
-                // 如果我贏錢，我計緊邊個「供獻」俾我
-                if (me.score > 0) {
-                    // 淨係計同場嗰啲輸咗錢嘅人，將我贏嘅錢按比例分落去佢哋度
-                    // 簡單化處理：直接當作我贏嘅錢，係由場上其餘所有人「分擔」
-                    // 咁樣計出嚟嘅數值會比較接近「佢俾咗幾多錢我」
-                    p.buddies[other.name] = (p.buddies[other.name] || 0) + (me.score / (matchSummary.length - 1));
-                } 
-                // 如果我輸錢，計緊我「進貢」咗俾邊個
-                else if (me.score < 0) {
-                    p.buddies[other.name] = (p.buddies[other.name] || 0) + (me.score / (matchSummary.length - 1));
-                }
+                // 將輸贏金額平分給場上其餘 3 人，模擬「從誰手上得到/送給誰」
+                let share = me.score / (matchSummary.length - 1);
+                p.buddies[other.name] = (p.buddies[other.name] || 0) + share;
             });
         });
     });
@@ -282,7 +273,6 @@
 
       function renderHall() {
     const grid = document.getElementById('hallGrid');
-    
     const sorted = Object.keys(playerStats)
         .map(name => ({ name, ...playerStats[name] }))
         .sort((a, b) => b.games - a.games);
@@ -291,12 +281,13 @@
         const info = PLAYER_TITLES[p.name] || PLAYER_TITLES["Default"];
         const winRate = ((p.wins / p.games) * 100).toFixed(1);
 
-        // 排序搵出貴人 (最高分) 同天敵 (最低分)
+        // 將所有對手按分數排序
         const buddyEntries = Object.entries(p.buddies || {}).sort((a, b) => b[1] - a[1]);
         
+        // 貴人：分數最高 (代表從他身上提款最多)
         const topBuddy = buddyEntries.length > 0 ? buddyEntries[0] : ["無", 0];
-        // 剋星係排序最後嗰個 (得分最負)
-        const topNemesis = buddyEntries.length > 1 ? buddyEntries[buddyEntries.length - 1] : ["無", 0];
+        // 天敵：分數最低 (代表送錢給他最多，數值最負)
+        const topNemesis = buddyEntries.length > 0 ? buddyEntries[buddyEntries.length - 1] : ["無", 0];
 
         return `
             <div class="tile-card bg-white p-5 shadow-sm flex flex-col border-l-8 border-emerald-500 hover:shadow-md transition-shadow">
@@ -330,11 +321,11 @@
                 <div class="border-t pt-3 mt-auto">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">💎 最旺貴人</span>
-                        <span class="text-[11px] font-bold text-emerald-900">${topBuddy[0]} <span class="text-emerald-500 ml-1">(+${topBuddy[1]})</span></span>
+                        <span class="text-[11px] font-bold text-emerald-900">${topBuddy[0]} <span class="text-emerald-500 ml-1">(+$${Math.round(topBuddy[1])})</span></span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded">💀 剋星天敵</span>
-                        <span class="text-[11px] font-bold text-red-900">${topNemesis[0]} <span class="text-red-500 ml-1">(${topNemesis[1]})</span></span>
+                        <span class="text-[11px] font-bold text-red-900">${topNemesis[0]} <span class="text-red-500 ml-1">($${Math.round(topNemesis[1])})</span></span>
                     </div>
                 </div>
             </div>
