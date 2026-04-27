@@ -143,17 +143,35 @@
                 playerStats[name].yearly[match.year].games += 1;
 
                 // 專門測算 Ava 的連勝
-                if (name === 'Ava') {
-                    if (score > 0) {
-                        avaCurrentStreak++;
-                        if (avaCurrentStreak > avaMaxStreak) avaMaxStreak = avaCurrentStreak;
-                    } else {
-                        avaCurrentStreak = 0;
-                    }
-                }
-            }
-        });
+            // 專門測算 Ava 的詳細數據
+if (name === 'Ava') {
+    // 1. 連勝計算
+    if (score > 0) {
+        avaCurrentStreak++;
+        if (avaCurrentStreak > avaMaxStreak) avaMaxStreak = avaCurrentStreak;
+    } else {
+        avaCurrentStreak = 0;
+    }
+
+    // 2. 玩法盈虧分析
+    if (!playerStats['Ava'].typeBreakdown) playerStats['Ava'].typeBreakdown = { 'hk': 0, 'tai': 0 };
+    playerStats['Ava'].typeBreakdown[match.type] = (playerStats['Ava'].typeBreakdown[match.type] || 0) + score;
+
+    // 3. 牌局玄學：分析同局對手
+    if (!playerStats['Ava'].nemesis) playerStats['Ava'].nemesis = {}; // 剋星
+    if (!playerStats['Ava'].buddies) playerStats['Ava'].buddies = {}; // 貴人
+    
+    const opponents = segments.map(s => {
+        const p = s.trim().match(/^(.+?)\s+([+-]?\d+)$/);
+        return p ? { name: formatName(p[1]), score: parseInt(p[2]) } : null;
+    }).filter(o => o && o.name !== 'Ava');
+
+    opponents.forEach(opp => {
+        // 如果 Ava 贏而對手輸，或者 Ava 贏得多過對手，視為從對手身上獲利 (貴人)
+        // 簡化邏輯：紀錄 Ava 同呢個人打嗰陣，Ava 嘅盈虧總和
+        playerStats['Ava'].buddies[opp.name] = (playerStats['Ava'].buddies[opp.name] || 0) + score;
     });
+}
     // 將紀錄儲存返落 Ava 身上
     if (playerStats['Ava']) playerStats['Ava'].maxStreak = avaMaxStreak;
 }
@@ -248,20 +266,28 @@ function renderPersonal() {
     const p = playerStats['Ava'];
     if (!p) return;
 
+    // 處理玄學數據：排序搵出最強貴人同剋星
+    const buddyList = Object.entries(p.buddies || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+    const nemesisList = Object.entries(p.buddies || {})
+        .sort((a, b) => a[1] - b[1])
+        .slice(0, 3);
+
     container.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="tile-card p-6 text-center bg-white flex flex-col justify-center">
-                <p class="text-xs font-black text-gray-400 mb-2 uppercase tracking-widest italic">Cumulative Profit (Ava)</p>
+                <p class="text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">累積總盈虧 (Ava)</p>
                 <p class="text-6xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">
                     ${p.total > 0 ? '+' : ''}${p.total}
                 </p>
             </div>
             
             <div class="md:col-span-2 tile-card p-6 bg-white">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2 italic">📅 Yearly Status</h3>
+                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">📅 年度戰情</h3>
                 <div class="grid grid-cols-3 gap-4">
                     ${['2026', '2025', '2024'].map(yr => `
-                        <div class="text-center p-4 bg-emerald-50/50 rounded-xl">
+                        <div class="text-center p-4 bg-gray-50 rounded-xl">
                             <p class="text-[10px] font-bold text-gray-400">${yr} YTD</p>
                             <p class="text-2xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">
                                 ${(p.yearly[yr]?.score || 0) > 0 ? '+' : ''}${(p.yearly[yr]?.score || 0)}
@@ -271,23 +297,55 @@ function renderPersonal() {
                 </div>
             </div>
 
-            <div class="md:col-span-3 tile-card p-8 bg-white border-t-8 border-amber-400">
-                <h3 class="font-black text-emerald-900 mb-6 text-center text-xl italic underline decoration-amber-400">🏆 Career Milestones</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-amber-100 p-4 rounded-2xl text-center shadow-inner">
-                        <p class="text-[10px] font-bold text-amber-800 uppercase">最高連勝</p>
-                        <p class="text-3xl font-black text-amber-600">${p.maxStreak || 0} <span class="text-sm">局</span></p>
+            <div class="md:col-span-2 tile-card p-6 bg-white">
+                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🔮 牌局玄學</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <div>
+                        <p class="text-emerald-600 font-black mb-2">最旺貴人 (同場得分最高)</p>
+                        <ul class="font-bold space-y-2 text-xs">
+                            ${buddyList.map((b, i) => `<li class="flex justify-between">${i+1}. ${b[0]} <span class="text-emerald-500">+$${b[1]}</span></li>`).join('')}
+                        </ul>
                     </div>
-                    <div class="bg-emerald-50 p-4 rounded-2xl text-center">
-                        <p class="text-[10px] font-bold text-emerald-800 uppercase">單局最高</p>
+                    <div>
+                        <p class="text-red-600 font-black mb-2">剋星天敵 (同場失分最高)</p>
+                        <ul class="font-bold space-y-2 text-xs">
+                            ${nemesisList.map((n, i) => `<li class="flex justify-between">${i+1}. ${n[0]} <span class="text-red-500">$${n[1]}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-1 tile-card p-6 bg-white flex flex-col justify-center">
+                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🀄 玩法盈虧</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+                        <span class="text-xs font-black text-blue-800">廣東牌</span>
+                        <span class="font-black text-blue-600">${p.typeBreakdown['hk'] > 0 ? '+' : ''}${p.typeBreakdown['hk'] || 0}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-lg">
+                        <span class="text-xs font-black text-emerald-800">港式台牌</span>
+                        <span class="font-black text-emerald-600">${p.typeBreakdown['tai'] > 0 ? '+' : ''}${p.typeBreakdown['tai'] || 0}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-3 tile-card p-6 bg-white">
+                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2 text-center">🏅 生涯成就</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-amber-50 p-4 rounded-xl text-center">
+                        <p class="text-[10px] font-bold text-amber-800">最高連勝</p>
+                        <p class="text-3xl font-black text-amber-600">${p.maxStreak || 0} 局</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-xl text-center">
+                        <p class="text-[10px] font-bold text-emerald-800">單局最高</p>
                         <p class="text-3xl font-black text-emerald-600">+${p.maxWin}</p>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-2xl text-center">
-                        <p class="text-[10px] font-bold text-blue-800 uppercase">總勝率</p>
+                    <div class="bg-blue-50 p-4 rounded-xl text-center">
+                        <p class="text-[10px] font-bold text-blue-800">總勝率</p>
                         <p class="text-3xl font-black text-blue-600">${((p.wins / p.games) * 100).toFixed(1)}%</p>
                     </div>
-                    <div class="bg-gray-50 p-4 rounded-2xl text-center">
-                        <p class="text-[10px] font-bold text-gray-800 uppercase">對局總量</p>
+                    <div class="bg-gray-50 p-4 rounded-xl text-center">
+                        <p class="text-[10px] font-bold text-gray-800">總對局數</p>
                         <p class="text-3xl font-black text-gray-600">${p.games}</p>
                     </div>
                 </div>
@@ -295,7 +353,6 @@ function renderPersonal() {
         </div>
     `;
 }
-
         function renderAll() {
             renderRankTable('all');
             renderHall();
