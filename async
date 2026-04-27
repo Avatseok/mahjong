@@ -185,12 +185,7 @@
         console.error(err);
     }
 }
-        renderAll();
-        document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
-            } catch (err) {
-                document.getElementById('status').innerText = "❌ LOAD FAILED";
-            }
-        }
+
 
  function processData() {
     playerStats = {};
@@ -391,8 +386,8 @@ function renderPersonal(targetName) {
     const container = document.getElementById('personalHero');
     const selector = document.getElementById('playerSelector');
     
-    // 1. 決定顯示邊個：如果有傳名入嚟就用佢，冇就預設顯示 Ava
-    const nameToShow = targetName || 'Ava';
+    // 如果冇傳名入嚟就用選單個名，或者預設 Ava
+    const nameToShow = targetName || (selector ? selector.value : 'Ava');
     const p = playerStats[nameToShow];
     if (!p) return;
 
