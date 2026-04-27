@@ -81,70 +81,55 @@
             </div>
         </div>
     </div>
-   <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_qNslS5ceeWEfUtrDgWZskGuvBHvg0zzgvIj4UKZCqUOGG2cbZdTYFiLh0bY-FRcH-uLqd0xYJaGr/pub?output=csv';
-    let ALL_PLAYERS = [];
+  <script>
+    // 1. 換咗呢條新嘅 Link 試試
+    const SHEET_ID = '15oFBkMppeKvViMEBEPyKqnyL1Gyrc9sJp1z8se38QxU';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
-    // 強力清除所有非數字符號 (例如 $ , 號)
-    const cleanInt = (val) => {
-        if (!val) return 0;
-        const num = parseInt(val.toString().replace(/[^\d-]/g, ''));
-        return isNaN(num) ? 0 : num;
-    };
+    let ALL_PLAYERS = [];
 
     async function fetchData() {
         const debug = document.getElementById('debug-status');
-        const container = document.getElementById('rankContainer');
         try {
-            debug.innerText = "連線中...";
+            debug.innerText = "嘗試抓取數據中...";
             const response = await fetch(CSV_URL);
             const csvText = await response.text();
-            const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
             
-            // 【排查位】睇下第一行數據到底係咩
-            console.log("原始第一行:", rows[1]);
-            
-            const dataRows = rows.slice(1);
+            // 睇下攞返嚟嘅文字係咪真係名單
+            console.log("CSV 內容預覽:", csvText.substring(0, 100));
 
+            const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
+            if (rows.length < 2) {
+                debug.innerText = "⚠️ 攞到檔案，但入面好似冇名單數據。";
+                return;
+            }
+
+            const dataRows = rows.slice(1);
             ALL_PLAYERS = dataRows.map(row => {
-                // 用逗號拆開
-                const cols = row.split(',');
-                
-                // 如果你見到全部係 0，好大機會係呢度 index (0, 1, 2...) 對錯咗位
+                // 有些 CSV 會用引號包住，我哋幫佢整返乾淨
+                const cols = row.split(',').map(c => c.replace(/"/g, '').trim());
                 return {
-                    name: cols[0] ? cols[0].trim() : '無名氏',
-                    sum: cleanInt(cols[1]),       // 總分 (第 2 欄)
-                    games: cleanInt(cols[2]),     // 局數 (第 3 欄)
-                    icon: (cols[5] && cols[5].length < 5) ? cols[5].trim() : '🀄', 
+                    name: cols[0] || '無名氏',
+                    sum: parseInt(cols[1]) || 0,
+                    games: parseInt(cols[2]) || 0,
+                    icon: cols[5] || '🀄',
                     title: cols[6] || '雀友',
-                    yearly: {
-                        "2026": cleanInt(cols[10]) // 2026 (第 11 欄)
-                    }
+                    yearly: { "2026": parseInt(cols[10]) || 0 }
                 };
             });
 
-            debug.innerText = `✅ 成功讀取 ${ALL_PLAYERS.length} 行數據`;
+            debug.innerText = `✅ 成功讀取 ${ALL_PLAYERS.length} 位雀友`;
             renderRank('all');
 
         } catch (e) {
-            debug.innerText = "❌ 出錯: " + e.message;
-            container.innerHTML = `<p class='p-10 text-red-500'>連唔到 Google Sheet，請檢查 URL 係咪啱。</p>`;
+            debug.innerText = "❌ 連線失敗: " + e.message;
+            console.error(e);
         }
     }
 
     function renderRank(year) {
         const container = document.getElementById('rankContainer');
-        
-        let list = ALL_PLAYERS.map(p => ({
-            ...p,
-            score: year === 'all' ? p.sum : (p.yearly[year] || 0)
-        })).sort((a, b) => b.score - a.score);
-
-        // 如果全部人名都係 0，我哋顯示一個簡單 Table 嚟 Debug
-        if (list.length > 0 && list[0].name === '無名氏') {
-             container.innerHTML = `<p class='p-10 text-center'>讀到數據，但拆唔開欄位。請檢查 CSV 格式。</p>`;
-             return;
-        }
+        let list = [...ALL_PLAYERS].sort((a, b) => b.sum - a.sum);
 
         container.innerHTML = list.map((p, i) => `
             <div class="p-4 flex justify-between items-center bg-white border-b">
@@ -153,20 +138,17 @@
                     <span class="text-2xl">${p.icon}</span>
                     <div>
                         <div class="font-black text-emerald-900">${p.name}</div>
-                        <div class="text-[10px] text-gray-400 font-bold">${p.title}</div>
+                        <div class="text-[10px] text-gray-400">${p.title}</div>
                     </div>
                 </div>
                 <div class="text-right">
-                    <div class="font-black ${p.score >= 0 ? 'text-emerald-600' : 'text-red-600'}">
-                        ${p.score > 0 ? '+' : ''}${p.score}
-                    </div>
+                    <div class="font-black text-emerald-600">${p.sum > 0 ? '+' : ''}${p.sum}</div>
                     <div class="text-[10px] text-gray-400">${p.games} 局</div>
                 </div>
             </div>
         `).join('');
     }
 
-    // 簡單版 Tab
     function switchTab(id) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
