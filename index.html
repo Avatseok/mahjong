@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雀王排行榜 - 偵察模式</title>
+    <title>雀王排行榜 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@700;900&display=swap');
+        body { font-family: 'Noto Sans HK', sans-serif; background-color: #064e3b; }
+    </style>
 </head>
-<body class="bg-[#064e3b] p-4 text-white">
+<body class="p-4">
 
     <div class="max-w-md mx-auto">
-        <header class="text-center py-6">
-            <h1 class="text-3xl font-black italic">🀄 雀王排行榜</h1>
-            <p id="status" class="text-emerald-400 text-[10px] mt-2 font-mono uppercase">連接成功，正在檢查格式...</p>
+        <header class="text-center py-10">
+            <h1 class="text-4xl font-black text-[#fdfbf7] italic drop-shadow-[3px_3px_0px_#b91c1c]">🀄 雀王排行榜</h1>
+            <p id="status" class="text-emerald-300 text-[10px] mt-2 font-mono uppercase tracking-widest text-center">數據解析中...</p>
         </header>
 
-        <div id="board" class="bg-white rounded-3xl shadow-xl overflow-hidden text-gray-800 mb-6">
-            <div class="p-10 text-center text-gray-400">數據分析中...</div>
-        </div>
-
-        <div class="p-4 bg-black/40 rounded-xl border border-white/10">
-            <p class="text-xs font-bold mb-2 text-yellow-400">🔍 原材料預覽 (Debug)：</p>
-            <div id="raw-debug" class="text-[9px] font-mono whitespace-pre-wrap break-all opacity-70">等待數據中...</div>
+        <div id="board" class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border-b-8 border-emerald-900/20 min-h-[300px]">
+            <div class="p-20 text-center text-gray-300">正在計算戰果...</div>
         </div>
     </div>
 
@@ -29,73 +28,88 @@
         const GID = '719393887';
         const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
-        async function probeData() {
+        async function loadData() {
             const status = document.getElementById('status');
             const board = document.getElementById('board');
-            const debug = document.getElementById('raw-debug');
 
             try {
                 const response = await fetch(URL);
                 const csvText = await response.text();
                 
-                // 將頭兩行印喺畫面度睇睇
-                const lines = csvText.split('\n');
-                debug.innerText = "LINE 1: " + lines[0] + "\n\nLINE 2: " + (lines[1] || "EMPTY");
+                const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
+                let finalStats = {}; // 用嚟儲存 { "Ava": { total: 0, games: 0 } }
 
-                // 分解數據
-                const rows = csvText.split(/\r?\n/).map(row => 
-                    row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim())
-                );
+                // 從第二行開始讀每一場對局
+                rows.slice(1).forEach(row => {
+                    // CSV 拆分，考慮到 Scores 欄位可能有引號包住
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
+                    
+                    // C 欄 (Index 2) 係原始字串: "Ava -140; Yanyi +492; Stephy -180; Joe -172"
+                    const scoreString = cols[2];
+                    if (!scoreString) return;
 
-                const header = rows[0];
-                const playerNames = header.slice(2); // C 欄打後
-                
-                let stats = {};
-                playerNames.forEach(name => { if(name) stats[name] = { total: 0, games: 0 }; });
+                    // 1. 用分號 ";" 拆開每個玩家
+                    const segments = scoreString.split(';');
 
-                rows.slice(1).forEach(cols => {
-                    playerNames.forEach((name, i) => {
-                        // 強制清除所有非數字字元 (例如 $ 或 ,)
-                        const rawVal = cols[i + 2] || "";
-                        const cleanVal = rawVal.replace(/[^\d-]/g, '');
-                        const val = parseInt(cleanVal);
+                    segments.forEach(seg => {
+                        // 2. 搵出名同分。用 regex 搵最後一個連住數字嘅位
+                        // 預期格式: "Ava -140" 或 "Yanyi +492"
+                        const match = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
                         
-                        if (!isNaN(val)) {
-                            stats[name].total += val;
-                            stats[name].games += 1;
+                        if (match) {
+                            const name = match[1].trim();
+                            const score = parseInt(match[2]);
+
+                            if (!finalStats[name]) {
+                                finalStats[name] = { total: 0, games: 0 };
+                            }
+                            finalStats[name].total += score;
+                            finalStats[name].games += 1;
                         }
                     });
                 });
 
-                const sorted = Object.keys(stats)
-                    .map(name => ({ name, score: stats[name].total, games: stats[name].games }))
-                    .sort((a, b) => b.score - a.score);
+                // 3. 排序
+                const sortedResult = Object.keys(finalStats)
+                    .map(name => ({
+                        name: name,
+                        total: finalStats[name].total,
+                        games: finalStats[name].games
+                    }))
+                    .sort((a, b) => b.total - a.total);
 
-                if (sorted.length === 0) {
-                    board.innerHTML = "<div class='p-10 text-center text-gray-400'>讀到文件，但搵唔到對局數據。</div>";
+                status.innerText = `✅ 成功讀取 ${rows.length - 1} 場對局`;
+
+                // 4. 渲染
+                if (sortedResult.length === 0) {
+                    board.innerHTML = `<div class="p-20 text-center text-gray-400">搵唔到玩家數據，請檢查 Excel C 欄格式。</div>`;
                 } else {
-                    status.innerText = "✅ 數據已更新";
-                    board.innerHTML = sorted.map((p, i) => `
-                        <div class="flex justify-between p-5 border-b border-gray-50 last:border-0">
-                            <div class="flex items-center gap-3">
-                                <span class="font-bold ${i<3?'text-amber-500':'text-gray-300'}">${i+1}</span>
-                                <span class="font-bold text-gray-800">${p.name}</span>
+                    board.innerHTML = sortedResult.map((p, i) => `
+                        <div class="flex items-center justify-between p-6 border-b border-gray-50 last:border-0 hover:bg-emerald-50 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <span class="text-xl font-black ${i < 3 ? 'text-amber-500' : 'text-gray-200'}">${i + 1}</span>
+                                <div>
+                                    <div class="font-black text-gray-800 text-lg leading-tight">${p.name}</div>
+                                    <div class="text-[9px] font-bold text-emerald-500 bg-emerald-100 px-1.5 py-0.5 rounded mt-1 inline-block uppercase">Player</div>
+                                </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-black ${p.score >= 0 ? 'text-emerald-600' : 'text-red-500'}">${p.score > 0 ? '+' : ''}${p.score}</div>
-                                <div class="text-[9px] text-gray-400">${p.games} 局</div>
+                                <div class="text-2xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-500'}">
+                                    ${p.total > 0 ? '+' : ''}${p.total}
+                                </div>
+                                <div class="text-[10px] text-gray-400 font-bold">${p.games} 局</div>
                             </div>
                         </div>
                     `).join('');
                 }
 
             } catch (err) {
-                status.innerText = "❌ 發生錯誤";
-                debug.innerText = err.message;
+                status.innerText = "❌ 系統錯誤";
+                board.innerHTML = `<div class="p-10 text-center text-red-500 text-xs font-bold">${err.message}</div>`;
             }
         }
 
-        window.onload = probeData;
+        window.onload = loadData;
     </script>
 </body>
 </html>
