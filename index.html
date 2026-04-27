@@ -222,13 +222,12 @@
         const oppScore = parseInt(pMatch[2]);
         if (oppName !== name) { // 自己唔可以係自己嘅貴人
             playerStats[name].buddies[oppName] = (playerStats[name].buddies[oppName] || 0) + score;
-                       }
-                    }
-                });
+                        }
+                    });
+                }
             }
         });
-    }); // 呢度要封好
-}
+    });
     if (playerStats['Ava']) playerStats['Ava'].maxStreak = avaMaxStreak;
 }
 
@@ -397,68 +396,60 @@
     }).join('');
 }
         // 呢段係新加嘅，直接貼喺 script 入面就得
-function renderPersonal(targetName = 'Ava') {
+function renderPersonal() {
     const container = document.getElementById('personalHero');
-    const p = playerStats[targetName];
+    const p = playerStats['Ava'];
     if (!p) return;
 
-    const info = PLAYER_TITLES[targetName] || PLAYER_TITLES["Default"];
-    const buddyList = Object.entries(p.buddies || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    const nemesisList = Object.entries(p.buddies || {}).sort((a, b) => a[1] - b[1]).slice(0, 3);
+    // 處理玄學數據：排序搵出最強貴人同剋星
+    const buddyList = Object.entries(p.buddies || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+    const nemesisList = Object.entries(p.buddies || {})
+        .sort((a, b) => a[1] - b[1])
+        .slice(0, 3);
 
     container.innerHTML = `
-        <div class="flex items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border-l-8 border-emerald-500">
-            <div class="text-6xl">${info.emoji}</div>
-            <div>
-                <h2 class="text-3xl font-black text-emerald-900">${targetName}</h2>
-                <p class="text-sm font-bold text-emerald-600 uppercase tracking-widest">${info.title}</p>
-            </div>
-        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="tile-card p-6 text-center bg-white flex flex-col justify-center">
-                <p class="text-xs font-black text-gray-400 mb-2 uppercase">總盈虧 (${targetName})</p>
-                <p class="text-6xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">${p.total > 0 ? '+' : ''}${p.total}</p>
+                <p class="text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">累積總盈虧 (Ava)</p>
+                <p class="text-6xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                    ${p.total > 0 ? '+' : ''}${p.total}
+                </p>
             </div>
+            
             <div class="md:col-span-2 tile-card p-6 bg-white">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">📅 年度戰報</h3>
+                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">📅 年度戰情</h3>
                 <div class="grid grid-cols-3 gap-4">
                     ${['2026', '2025', '2024'].map(yr => `
                         <div class="text-center p-4 bg-gray-50 rounded-xl">
-                            <p class="text-[10px] font-bold text-gray-400">${yr}</p>
+                            <p class="text-[10px] font-bold text-gray-400">${yr} YTD</p>
                             <p class="text-2xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">
                                 ${(p.yearly[yr]?.score || 0) > 0 ? '+' : ''}${(p.yearly[yr]?.score || 0)}
                             </p>
-                        </div>`).join('')}
+                        </div>
+                    `).join('')}
                 </div>
             </div>
+
             <div class="md:col-span-2 tile-card p-6 bg-white">
                 <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🔮 牌局玄學</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                     <div>
-                        <p class="text-emerald-600 font-black mb-2">💎 最旺貴人</p>
+                        <p class="text-emerald-600 font-black mb-2">最旺貴人 (同場得分最高)</p>
                         <ul class="font-bold space-y-2 text-xs">
-                            ${buddyList.map(b => `<li class="flex justify-between border-b pb-1">${b[0]} <span class="text-emerald-500">+$${b[1]}</span></li>`).join('')}
+                            ${buddyList.map((b, i) => `<li class="flex justify-between">${i+1}. ${b[0]} <span class="text-emerald-500">+$${b[1]}</span></li>`).join('')}
                         </ul>
                     </div>
                     <div>
-                        <p class="text-red-600 font-black mb-2">💀 剋星天敵</p>
+                        <p class="text-red-600 font-black mb-2">剋星天敵 (同場失分最高)</p>
                         <ul class="font-bold space-y-2 text-xs">
-                            ${nemesisList.map(n => `<li class="flex justify-between border-b pb-1">${n[0]} <span class="text-red-500">$${n[1]}</span></li>`).join('')}
+                            ${nemesisList.map((n, i) => `<li class="flex justify-between">${i+1}. ${n[0]} <span class="text-red-500">$${n[1]}</span></li>`).join('')}
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="md:col-span-1 tile-card p-6 bg-white flex flex-col justify-center">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🏅 生涯成就</h3>
-                <div class="space-y-3 text-xs font-bold text-gray-600">
-                    <div class="flex justify-between"><span>最高連勝</span><span class="text-amber-600">${p.maxStreak} 局</span></div>
-                    <div class="flex justify-between"><span>單局最高</span><span class="text-emerald-600">+${p.maxWin}</span></div>
-                    <div class="flex justify-between"><span>總勝率</span><span>${((p.wins / p.games) * 100).toFixed(1)}%</span></div>
-                    <div class="flex justify-between"><span>總對局</span><span>${p.games} 局</span></div>
-                </div>
-            </div>
-        </div>`;
-}
+
             <div class="md:col-span-1 tile-card p-6 bg-white flex flex-col justify-center">
                 <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🀄 玩法盈虧</h3>
                 <div class="space-y-3">
