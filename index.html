@@ -15,9 +15,6 @@
         .tile-card { background: var(--mj-tile); border-bottom: 5px solid #d1d5db; border-right: 5px solid #d1d5db; border-radius: 12px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .score-pill { padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 900; }
-        .win { background: #dcfce7; color: #166534; }
-        .lose { background: #fee2e2; color: #991b1b; }
         .rank-row { border-left: 8px solid transparent; transition: 0.2s; }
         .rank-1 { border-left-color: #fbbf24; background: linear-gradient(90deg, #fef3c7, transparent); }
         .rank-2 { border-left-color: #94a3b8; background: linear-gradient(90deg, #f1f5f9, transparent); }
@@ -56,21 +53,21 @@
             <div id="hallGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-       <div id="tab3" class="tab-content">
-    <div id="personalContainer" class="max-w-4xl mx-auto">
-        <div id="personalHero"></div>
-    </div>
-</div>
+        <div id="tab3" class="tab-content">
+            <div id="personalContainer" class="max-w-4xl mx-auto">
+                <div id="personalHero"></div>
+            </div>
+        </div>
 
         <div id="tab4" class="tab-content">
-    <div class="max-w-2xl mx-auto mb-6 flex items-center justify-between bg-emerald-900/80 p-4 rounded-2xl border border-emerald-700 shadow-xl">
-        <label class="text-white font-black text-sm italic">🔍 查閱個人流水帳：</label>
-        <select id="logPlayerFilter" onchange="renderLogs()" class="bg-white text-emerald-900 font-bold py-2 px-4 rounded-xl text-sm outline-none">
-            <option value="all">所有玩家 (All)</option>
-        </select>
-    </div>
-    <div id="logsContainer" class="space-y-4 max-w-2xl mx-auto"></div>
-</div>
+            <div class="max-w-2xl mx-auto mb-6 flex items-center justify-between bg-emerald-900/80 p-4 rounded-2xl border border-emerald-700 shadow-xl">
+                <label class="text-white font-black text-sm italic">🔍 查閱個人流水帳：</label>
+                <select id="logPlayerFilter" onchange="renderLogs()" class="bg-white text-emerald-900 font-bold py-2 px-4 rounded-xl text-sm outline-none">
+                    <option value="all">所有玩家 (All)</option>
+                </select>
+            </div>
+            <div id="logsContainer" class="space-y-4 max-w-2xl mx-auto"></div>
+        </div>
 
         <div id="tab5" class="tab-content">
             <div class="max-w-xl mx-auto tile-card p-8 bg-white shadow-xl text-center">
@@ -88,51 +85,51 @@
         const SHEET_ID = '15oFBkMppeKvViMEBEPyKqnyL1Gyrc9sJp1z8se38QxU';
         const GID = '719393887';
         const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+        
         const PLAYER_TITLES = {
-            "Ava": { title: "雀壇傳奇", emoji: "👑", comment: "數據級統治力，穩定輸出的雀壇長青樹，係所有人都要防範嘅最高威脅。" },
-            "Carissa": { title: "穩健派", emoji: "🐱", comment: "基本功扎實，穩打穩紮的持久戰型玩家，一旦手順就係大牌製造機。" },
-            "Haydrian": { title: "雀壇不死鳥", emoji: "🐦", comment: "雖然戰況起伏不定，但韌力極強，係場上最常出現嘅核心戰力，總能喺混戰中搵到生機。" },
+            "Ava": { title: "雀壇傳奇", emoji: "👑", comment: "數據級統治力，穩定輸出的雀壇長青樹。" },
+            "Carissa": { title: "穩健派", emoji: "🐱", comment: "基本功扎實，穩打穩紮的持久戰型玩家。" },
+            "Haydrian": { title: "雀壇不死鳥", emoji: "🐦", comment: "韌力極強，總能喺混戰中搵到生機。" },
             "Jack": { title: "送財童子", emoji: "🤡", comment: "熱心推動雀界發展，對手眼中的福利官。" },
-            "Yanyi": { title: "技術型刺客", emoji: "🗡️", comment: "打法細膩且穩定，擅長精準打擊對手，勝率相當平均，係實力派代表。" },
-            "Annie": { title: "爆分奇兵", emoji: "🔥", comment: "單局爆發力驚人，隨時一鋪清袋對手，絕對係雀壇核彈。" },
-            "Gut": { title: "亂流大師", emoji: "🌪️", comment: "打法充滿未知數，經常打亂全場節奏，令對手摸唔清頭緒嘅神奇玩家。" },
-            "Colbert": { title: "掠奪者", emoji: "💰", comment: "專門喺大型混戰中奪取高分，眼光獨到，攞分效率極高。" },
+            "Yanyi": { title: "技術型刺客", emoji: "🗡️", comment: "打法細膩且穩定，擅長精準打擊對手。" },
+            "Annie": { title: "爆分奇兵", emoji: "🔥", comment: "單局爆發力驚人，隨時一鋪清袋對手。" },
+            "Gut": { title: "亂流大師", emoji: "🌪️", comment: "打法充滿未知數，經常打亂全場節奏。" },
+            "Colbert": { title: "掠奪者", emoji: "💰", comment: "專門喺大型混戰中奪取高分。" },
             "Kyros": { title: "防禦堡壘", emoji: "🏰", comment: "善於觀察對手，只是尚未掌握贏牌密碼。" },
-            "Nat": { title: "幻之逆襲", emoji: "🦊", comment: "高效率贏家，經常喺最後關頭殺出重圍，低調中收割全場積分。" },
-            "Karis": { title: "進擊小鋼炮", emoji: "🚀", comment: "打法果斷，雖然有起有落，但每次上枱都帶嚟極大衝擊力。" },
+            "Nat": { title: "幻之逆襲", emoji: "🦊", comment: "高效率贏家，低調中收割全場積分。" },
+            "Karis": { title: "進擊小鋼炮", emoji: "🚀", comment: "打法果斷，帶嚟極大衝擊力。" },
             "Stephy": { title: "優雅棋手", emoji: "👠", comment: "小心謹慎，寧願少輸也不願冒險大敗。" },
-            "Joe": { title: "冷靜觀察家", emoji: "👁️", comment: "靜候時機嘅玩家，雖然場數唔多，但每次出現都令對局變更刺激。" },
-            "Tina": { title: "需要努力", emoji: "📉", comment: "為雀壇作出了巨大貢獻，精神值得學習。" },
-            "Charles": { title: "變幻莫測", emoji: "🎭", comment: "打法難以預測，有時大贏有時低調，係個充滿驚喜嘅對手。" },
-            "Kit": { title: "修煉中", emoji: "🔧", comment: "正在磨練牌技，等待一場漂亮的翻盤。" },
-            "Don": { title: "紳士", emoji: "🎩", comment: "談笑用兵，喺歡樂氛圍中默默贏走積分嘅高手。" },
-            "Wadee": { title: "逆流戰士", emoji: "🌊", comment: "狀態隨風起伏，正在等待上風位的到來。" },
+            "Joe": { title: "冷靜觀察家", emoji: "👁️", comment: "靜候時機嘅玩家。" },
+            "Tina": { title: "需要努力", emoji: "📉", comment: "為雀壇作出了巨大貢獻。" },
+            "Charles": { title: "變幻莫測", emoji: "🎭", comment: "打法難以預測，充滿驚喜嘅對手。" },
+            "Kit": { title: "修煉中", emoji: "🔧", comment: "正在磨練牌技，等待翻盤。" },
+            "Don": { title: "紳士", emoji: "🎩", comment: "談笑用兵，喺歡樂氛圍中默默贏分。" },
+            "Wadee": { title: "逆流戰士", emoji: "🌊", comment: "狀態隨風起伏，等待上風位的到來。" },
             "Emily": { title: "享受過程", emoji: "☕", comment: "心態平穩，對局體驗遠比分數重要。" },
-            "Marco": { title: "積分獵人", emoji: "🎯", comment: "目標明確，一有機會就會大口大口咁食落去，進攻力強。" },
-            "Tony": { title: "神龍見首", emoji: "🐉", comment: "每次出現都會帶嚟一陣騷動，實力不容小覷。" },
-            "Soddy": { title: "佛系", emoji: "🥤", comment: "不爭名次，純粹是為大家帶來歡樂。" },
-            "Reina": { title: "冷酷執行者", emoji: "❄️", comment: "出牌快狠準，唔會俾對手任何喘息空間。" },
+            "Marco": { title: "積分獵人", emoji: "🎯", comment: "目標明確，進攻力強。" },
+            "Tony": { title: "神龍見首", emoji: "🐉", comment: "每次出現都會帶嚟一陣騷動。" },
+            "Soddy": { title: "佛系", emoji: "🥤", comment: "不爭名次，純粹為大家帶來歡樂。" },
+            "Reina": { title: "冷酷執行者", emoji: "❄️", comment: "出牌快狠準，唔會俾對手喘息空間。" },
             "Hauching": { title: "心算大師", emoji: "🧠", comment: "記憶力驚人，擅長推算對手手牌。" },
-            "Angus": { title: "勇往直前", emoji: "🐂", comment: "風格強悍，敢於博大牌，係場上極具威脅嘅成員。" },
+            "Angus": { title: "勇往直前", emoji: "🐂", comment: "風格強悍，敢於博大牌。" },
             "Cathy": { title: "微笑殺手", emoji: "😊", comment: "面上帶著笑容，手起刀落絕不留情。" },
             "Joey": { title: "靈活走位", emoji: "🤸", comment: "反應敏捷，擅長根據局勢改變打法。" },
-            "Jayden": { title: "潛力玩家", emoji: "💎", comment: "雖然初露鋒芒，但展現出極佳天賦。" },
+            "Jayden": { title: "潛力玩家", emoji: "💎", comment: "初露鋒芒，展現出極佳天賦。" },
             "Sunho": { title: "陽光戰士", emoji: "☀️", comment: "心態積極，無論輸贏都保持風度。" },
             "Onon": { title: "雀壇仁兄", emoji: "🤝", comment: "友誼第一，係場面上嘅靈魂人物。" },
             "Harry": { title: "幻之戰力", emoji: "👻", comment: "出現次數唔多，但一出現就展示強大存在感。" },
             "Andy leung": { title: "穩重派", emoji: "🪵", comment: "默默耕耘，等待一擊即中嘅機會。" },
-            "Andy mok": { title: "冷面笑匠", emoji: "🕶️", comment: "喺談笑間將對手擊敗，非常難對付。" },
+            "Andy mok": { title: "冷面笑匠", emoji: "🕶️", comment: "喺談笑間將對手擊敗。" },
             "Irene": { title: "突擊隊長", emoji: "⚡", comment: "進攻速度極快，經常令對手措手不及。" },
             "Eva": { title: "靈感玩家", emoji: "✨", comment: "打牌唔止係贏輸，仲係一種風格。" },
             "Heidi": { title: "堅韌之星", emoji: "🧗", comment: "雖然遇到困難，但依然保持風度。" },
             "Winnie": { title: "優雅勝出", emoji: "🎀", comment: "以柔克剛，在平靜中悄悄帶走勝利。" },
-            "Bobo": { title: "重志參與", emoji: "🎈", comment: "志不在贏，享受對局樂趣的快樂玩家。" },
+            "Bobo": { title: "重志參與", emoji: "🎈", comment: "志不在贏，享受對局樂趣。" },
             "Daniel": { title: "數學家", emoji: "🔢", comment: "每一張出牌都經過嚴密計算。" },
-            "Lailo": { title: "遺憾離場", emoji: "💀", comment: "一戰定江山，期待再次回歸復仇。" },
+            "Lailo": { title: "遺憾離場", emoji: "💀", comment: "期待再次回歸復仇。" },
             "Default": { title: "江湖遊俠", emoji: "🥋", comment: "身份神秘，隨時準備喺雀壇留下名號。" }
         };
 
-    const getPlayerData = (name) => PLAYER_TITLES[name] || PLAYER_TITLES["Default"];
         let rawData = [];
         let playerStats = {};
 
@@ -145,91 +142,83 @@
                 const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
                 
                 rawData = rows.slice(1).map(row => {
-                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
-                return { date: cols[0], type: cols[1], scores: cols[2], year: cols[0] ? cols[0].split('-')[0] : "" };
-            }).reverse(); // <--- 加呢一行，成個網頁嘅紀錄就會由新到舊排
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
+                    return { date: cols[0], type: cols[1], scores: cols[2], year: cols[0] ? cols[0].split('-')[0] : "" };
+                }).reverse();
 
                 processData();
-        
-        // 自動填充流水帳篩選選單
-        const logSelect = document.getElementById('logPlayerFilter');
-        if (logSelect) {
-            logSelect.innerHTML = '<option value="all">所有玩家 (All)</option>';
-            Object.keys(playerStats).sort().forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.innerText = name;
-                logSelect.appendChild(opt);
-            });
-        }
+                
+                const logSelect = document.getElementById('logPlayerFilter');
+                if (logSelect) {
+                    logSelect.innerHTML = '<option value="all">所有玩家 (All)</option>';
+                    Object.keys(playerStats).sort().forEach(name => {
+                        const opt = document.createElement('option');
+                        opt.value = name;
+                        opt.innerText = name;
+                        logSelect.appendChild(opt);
+                    });
+                }
 
-        renderAll();
-        document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
+                renderAll();
+                document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
             } catch (err) {
+                console.error(err);
                 document.getElementById('status').innerText = "❌ LOAD FAILED";
             }
         }
 
-    function processData() {
-    playerStats = {};
-    const sortedData = [...rawData].sort((a, b) => new Date(a.date) - new Date(b.date));
+        function processData() {
+            playerStats = {};
+            const sortedData = [...rawData].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    let avaCurrentStreak = 0;
-    let avaMaxStreak = 0;
+            sortedData.forEach(match => {
+                const segments = match.scores.split(';');
+                segments.forEach(seg => {
+                    const parts = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
+                    if (parts) {
+                        const name = formatName(parts[1]);
+                        const score = parseInt(parts[2]);
 
-    sortedData.forEach(match => {
-        const segments = match.scores.split(';');
-        segments.forEach(seg => {
-            const parts = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
-            if (parts) {
-                const name = formatName(parts[1]);
-                const score = parseInt(parts[2]);
-
-                if (!playerStats[name]) {
-                    playerStats[name] = { 
-                        total: 0, games: 0, wins: 0, maxWin: 0, 
-                        yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
-                        buddies: {} 
-                    };
-                }
-
-                playerStats[name].total += score;
-                playerStats[name].games += 1;
-                if (score > 0) playerStats[name].wins += 1;
-                if (score > playerStats[name].maxWin) playerStats[name].maxWin = score;
-
-                if (!playerStats[name].yearly[match.year]) {
-                    playerStats[name].yearly[match.year] = { score: 0, games: 0 };
-                }
-                playerStats[name].yearly[match.year].score += score;
-                playerStats[name].yearly[match.year].games += 1;
-
-                if (name === 'Ava') {
-                    if (score > 0) {
-                        avaCurrentStreak++;
-                        if (avaCurrentStreak > avaMaxStreak) avaMaxStreak = avaCurrentStreak;
-                    } else {
-                        avaCurrentStreak = 0;
-                    }
-                    const mType = match.type.toLowerCase();
-                    playerStats['Ava'].typeBreakdown[mType] = (playerStats['Ava'].typeBreakdown[mType] || 0) + score;
-
-                    // 玄學數據分析
-                    segments.forEach(s => {
-    const pMatch = s.trim().match(/^(.+?)\s+([+-]?\d+)$/);
-    if (pMatch) {
-        const oppName = formatName(pMatch[1]);
-        const oppScore = parseInt(pMatch[2]);
-        if (oppName !== name) { // 自己唔可以係自己嘅貴人
-            playerStats[name].buddies[oppName] = (playerStats[name].buddies[oppName] || 0) + score;
+                        if (!playerStats[name]) {
+                            playerStats[name] = { 
+                                total: 0, games: 0, wins: 0, maxWin: 0, maxStreak: 0, currentStreak: 0,
+                                yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
+                                buddies: {} 
+                            };
                         }
-                    });
-                }
-            }
-        });
-    });
-    if (playerStats['Ava']) playerStats['Ava'].maxStreak = avaMaxStreak;
-}
+
+                        const p = playerStats[name];
+                        p.total += score;
+                        p.games += 1;
+                        if (score > 0) {
+                            p.wins += 1;
+                            p.currentStreak += 1;
+                            if (p.currentStreak > p.maxStreak) p.maxStreak = p.currentStreak;
+                        } else {
+                            p.currentStreak = 0;
+                        }
+                        if (score > p.maxWin) p.maxWin = score;
+
+                        if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
+                        p.yearly[match.year].score += score;
+                        p.yearly[match.year].games += 1;
+
+                        const mType = match.type.toLowerCase();
+                        p.typeBreakdown[mType] = (p.typeBreakdown[mType] || 0) + score;
+
+                        segments.forEach(s => {
+                            const pMatch = s.trim().match(/^(.+?)\s+([+-]?\d+)$/);
+                            if (pMatch) {
+                                const oppName = formatName(pMatch[1]);
+                                if (oppName !== name) {
+                                    p.buddies[oppName] = (p.buddies[oppName] || 0) + score;
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        }
 
         function switchTab(id, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -244,7 +233,7 @@
             renderRankTable(year);
         }
 
-       function renderRankTable(year) {
+        function renderRankTable(year) {
             const container = document.getElementById('rankContainer');
             const sorted = Object.keys(playerStats).map(name => {
                 let val, games;
@@ -260,18 +249,14 @@
             }).filter(p => p.val !== 0).sort((a,b) => b.val - a.val);
 
             container.innerHTML = sorted.map((p, i) => {
-                // 喺呢度攞返對應嘅 Emoji 同稱號
                 const info = PLAYER_TITLES[p.name] || PLAYER_TITLES["Default"];
-                
                 return `
                 <div class="rank-row p-4 flex justify-between items-center bg-white ${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
                     <div class="flex items-center gap-4">
                         <span class="w-6 font-black text-gray-400 italic text-sm">${i+1}</span>
                         <div class="text-2xl">${info.emoji}</div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <p class="font-black text-emerald-900">${p.name}</p>
-                            </div>
+                            <p class="font-black text-emerald-900">${p.name}</p>
                             <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest italic">${info.title}</p>
                         </div>
                     </div>
@@ -281,231 +266,140 @@
                         </p>
                         <p class="text-[10px] text-gray-400 font-bold">${p.games} 局</p>
                     </div>
-                </div>
-            `}).join('');
+                </div>`;
+            }).join('');
         }
 
-       function renderHall() {
-    const grid = document.getElementById('hallGrid');
-    
-    const sorted = Object.keys(playerStats)
-        .map(name => ({ name, ...playerStats[name] }))
-        .sort((a, b) => b.games - a.games);
-
-    grid.innerHTML = sorted.map(p => {
-        const info = PLAYER_TITLES[p.name] || PLAYER_TITLES["Default"];
-        const winRate = ((p.wins / p.games) * 100).toFixed(1);
-
-        // --- 核心：計算貴人同剋星 ---
-        const buddyEntries = Object.entries(p.buddies || {}).sort((a, b) => b[1] - a[1]);
-        const topBuddy = buddyEntries.length > 0 && buddyEntries[0][1] > 0 ? buddyEntries[0] : ["--", 0];
-        
-        const nemesisEntries = Object.entries(p.buddies || {}).sort((a, b) => a[1] - b[1]);
-        const topNemesis = nemesisEntries.length > 0 && nemesisEntries[0][1] < 0 ? nemesisEntries[0] : ["--", 0];
-
-        return `
-            <div class="tile-card bg-white p-5 shadow-sm flex flex-col border-l-8 border-emerald-500 hover:shadow-md transition-shadow relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-emerald-50 px-3 py-1 rounded-bl-xl border-b border-l border-emerald-100">
-                    <span class="text-[9px] font-black text-emerald-600 uppercase">Played: ${p.games}</span>
-                </div>
-
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="text-4xl">${info.emoji}</div>
-                    <div>
-                        <h3 class="text-xl font-black text-emerald-900">${p.name}</h3>
-                        <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">${info.title}</p>
+        function renderHall() {
+            const grid = document.getElementById('hallGrid');
+            const sorted = Object.keys(playerStats).map(name => ({ name, ...playerStats[name] })).sort((a, b) => b.games - a.games);
+            grid.innerHTML = sorted.map(p => {
+                const info = PLAYER_TITLES[p.name] || PLAYER_TITLES["Default"];
+                const winRate = ((p.wins / p.games) * 100).toFixed(1);
+                return `
+                <div onclick="viewPlayer('${p.name}')" class="tile-card cursor-pointer hover:shadow-lg transition-all bg-white p-5 flex flex-col border-l-8 border-emerald-500 relative">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="text-4xl">${info.emoji}</div>
+                        <div>
+                            <h3 class="text-xl font-black text-emerald-900">${p.name}</h3>
+                            <p class="text-[10px] font-bold text-emerald-600 uppercase">${info.title}</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="bg-emerald-900 text-white p-3 rounded-xl shadow-lg">
-                        <p class="text-[9px] font-bold text-emerald-300 uppercase opacity-70">累積總盈虧</p>
+                    <div class="bg-emerald-900 text-white p-3 rounded-xl mb-4">
+                        <p class="text-[9px] opacity-70">累積總盈虧</p>
                         <p class="text-lg font-black">${p.total > 0 ? '+' : ''}${p.total}</p>
                     </div>
-                    <div class="bg-amber-500 text-white p-3 rounded-xl shadow-lg">
-                        <p class="text-[9px] font-bold text-amber-100 uppercase opacity-70">生涯最高分</p>
-                        <p class="text-lg font-black">+${p.maxWin}</p>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <div class="flex justify-between text-[10px] font-black text-gray-400 mb-1 uppercase">
-                        <span>勝率 (Win Rate)</span>
-                        <span>${winRate}%</span>
+                    <div class="text-[10px] font-black text-gray-400 mb-1 uppercase flex justify-between">
+                        <span>勝率 ${winRate}%</span>
+                        <span>${p.games} 局</span>
                     </div>
                     <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-emerald-500 h-full" style="width: ${winRate}%"></div>
                     </div>
-                </div>
+                </div>`;
+            }).join('');
+        }
 
-                <div class="space-y-2 border-t pt-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm">💎</span>
-                            <span class="text-[11px] font-black text-emerald-700">最旺貴人</span>
-                        </div>
-                        <span class="text-[11px] font-bold text-gray-600">${topBuddy[0]} <span class="text-emerald-500 ml-1">(+${topBuddy[1]})</span></span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm">💀</span>
-                            <span class="text-[11px] font-black text-red-700">黑色天敵</span>
-                        </div>
-                        <span class="text-[11px] font-bold text-gray-600">${topNemesis[0]} <span class="text-red-500 ml-1">(${topNemesis[1]})</span></span>
-                    </div>
-                </div>
+        function renderPersonal(targetName = 'Ava') {
+            const container = document.getElementById('personalHero');
+            const p = playerStats[targetName];
+            if (!p) return;
+            const info = PLAYER_TITLES[targetName] || PLAYER_TITLES["Default"];
+            const buddyList = Object.entries(p.buddies || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+            const nemesisList = Object.entries(p.buddies || {}).sort((a, b) => a[1] - b[1]).slice(0, 3);
 
-                <p class="text-[10px] text-gray-400 italic text-center mt-4 border-t pt-2 opacity-70">
-                    "${info.comment}"
-                </p>
-            </div>
-        `;
-    }).join('');
-}
-
-       function renderLogs() {
-    const container = document.getElementById('logsContainer');
-    const filterSelect = document.getElementById('logPlayerFilter');
-    const filterPlayer = filterSelect ? filterSelect.value : 'all';
-    
-    // 如果有篩選，就顯示所有相關紀錄；否則只顯示最近 20 條
-    const dataToRender = filterPlayer === 'all' ? rawData.slice(0, 20) : rawData.filter(l => l.scores.includes(filterPlayer));
-
-    container.innerHTML = dataToRender.map(l => {
-        const isHK = l.type.toLowerCase() === 'hk';
-        const scoresHtml = l.scores.split(';').map(s => {
-            const isHighlight = filterPlayer !== 'all' && s.includes(filterPlayer);
-            const scoreNum = parseInt(s.match(/[+-]?\d+/));
-            return `
-                <div class="flex justify-between items-center px-3 py-2 rounded-lg ${isHighlight ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-gray-50'}">
-                    <span class="text-[11px] font-bold ${isHighlight ? 'text-emerald-900' : 'text-gray-600'}">${s.trim().split(' ')[0]}</span>
-                    <span class="text-[11px] font-black ${scoreNum >= 0 ? 'text-emerald-600' : 'text-red-600'}">${scoreNum > 0 ? '+' : ''}${scoreNum}</span>
-                </div>
-            `;
-        }).join('');
-
-        return `
-            <div class="tile-card p-5 bg-white border-t-4 ${isHK ? 'border-t-blue-500' : 'border-t-amber-500'}">
-                <div class="flex justify-between items-start mb-4">
-                    <div><span class="text-[10px] font-black text-gray-400 block mb-1">對局日期</span><span class="text-sm font-black text-emerald-900 italic">${l.date}</span></div>
-                    <span class="text-[10px] font-black text-white px-3 py-1 rounded-full ${isHK ? 'bg-blue-600' : 'bg-amber-600'} shadow-sm uppercase italic">${isHK ? '🀄 廣東牌' : '🇹🇼 港式台牌'}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2">${scoresHtml}</div>
-            </div>
-        `;
-    }).join('');
-}
-        // 呢段係新加嘅，直接貼喺 script 入面就得
-function renderPersonal() {
-    const container = document.getElementById('personalHero');
-    const p = playerStats['Ava'];
-    if (!p) return;
-
-    // 處理玄學數據：排序搵出最強貴人同剋星
-    const buddyList = Object.entries(p.buddies || {})
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3);
-    const nemesisList = Object.entries(p.buddies || {})
-        .sort((a, b) => a[1] - b[1])
-        .slice(0, 3);
-
-    container.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="tile-card p-6 text-center bg-white flex flex-col justify-center">
-                <p class="text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">累積總盈虧 (Ava)</p>
-                <p class="text-6xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">
-                    ${p.total > 0 ? '+' : ''}${p.total}
-                </p>
-            </div>
-            
-            <div class="md:col-span-2 tile-card p-6 bg-white">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">📅 年度戰情</h3>
-                <div class="grid grid-cols-3 gap-4">
-                    ${['2026', '2025', '2024'].map(yr => `
-                        <div class="text-center p-4 bg-gray-50 rounded-xl">
-                            <p class="text-[10px] font-bold text-gray-400">${yr} YTD</p>
-                            <p class="text-2xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">
-                                ${(p.yearly[yr]?.score || 0) > 0 ? '+' : ''}${(p.yearly[yr]?.score || 0)}
-                            </p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-
-            <div class="md:col-span-2 tile-card p-6 bg-white">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🔮 牌局玄學</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            container.innerHTML = `
+                <div class="flex items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border-l-8 border-emerald-500">
+                    <div class="text-6xl">${info.emoji}</div>
                     <div>
-                        <p class="text-emerald-600 font-black mb-2">最旺貴人 (同場得分最高)</p>
-                        <ul class="font-bold space-y-2 text-xs">
-                            ${buddyList.map((b, i) => `<li class="flex justify-between">${i+1}. ${b[0]} <span class="text-emerald-500">+$${b[1]}</span></li>`).join('')}
-                        </ul>
-                    </div>
-                    <div>
-                        <p class="text-red-600 font-black mb-2">剋星天敵 (同場失分最高)</p>
-                        <ul class="font-bold space-y-2 text-xs">
-                            ${nemesisList.map((n, i) => `<li class="flex justify-between">${i+1}. ${n[0]} <span class="text-red-500">$${n[1]}</span></li>`).join('')}
-                        </ul>
+                        <h2 class="text-3xl font-black text-emerald-900">${targetName}</h2>
+                        <p class="text-sm font-bold text-emerald-600 uppercase">${info.title}</p>
                     </div>
                 </div>
-            </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="tile-card p-6 text-center bg-white flex flex-col justify-center">
+                        <p class="text-xs font-black text-gray-400 mb-2 uppercase">總盈虧</p>
+                        <p class="text-6xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">${p.total > 0 ? '+' : ''}${p.total}</p>
+                    </div>
+                    <div class="md:col-span-2 tile-card p-6 bg-white">
+                        <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">📅 年度戰報</h3>
+                        <div class="grid grid-cols-3 gap-4">
+                            ${['2026', '2025', '2024'].map(yr => `
+                                <div class="text-center p-4 bg-gray-50 rounded-xl">
+                                    <p class="text-[10px] font-bold text-gray-400">${yr}</p>
+                                    <p class="text-xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">${(p.yearly[yr]?.score || 0) > 0 ? '+' : ''}${(p.yearly[yr]?.score || 0)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 tile-card p-6 bg-white">
+                        <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🔮 牌局玄學</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-emerald-600 font-black text-xs mb-2">💎 最旺貴人</p>
+                                <ul class="space-y-1 text-xs font-bold">
+                                    ${buddyList.map(b => `<li class="flex justify-between border-b pb-1">${b[0]} <span class="text-emerald-500">+$${b[1]}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="text-red-600 font-black text-xs mb-2">💀 剋星天敵</p>
+                                <ul class="space-y-1 text-xs font-bold">
+                                    ${nemesisList.map(n => `<li class="flex justify-between border-b pb-1">${n[0]} <span class="text-red-500">$${n[1]}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tile-card p-6 bg-white">
+                        <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🏅 生涯成就</h3>
+                        <div class="space-y-2 text-xs font-bold text-gray-600">
+                            <div class="flex justify-between"><span>最高連勝</span><span class="text-amber-600">${p.maxStreak} 局</span></div>
+                            <div class="flex justify-between"><span>單局最高</span><span class="text-emerald-600">+${p.maxWin}</span></div>
+                            <div class="flex justify-between"><span>總勝率</span><span>${((p.wins/p.games)*100).toFixed(1)}%</span></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
 
-            <div class="md:col-span-1 tile-card p-6 bg-white flex flex-col justify-center">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🀄 玩法盈虧</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
-                        <span class="text-xs font-black text-blue-800">廣東牌</span>
-                        <span class="font-black text-blue-600">${p.typeBreakdown['hk'] > 0 ? '+' : ''}${p.typeBreakdown['hk'] || 0}</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-lg">
-                        <span class="text-xs font-black text-emerald-800">港式台牌</span>
-                        <span class="font-black text-emerald-600">${p.typeBreakdown['tai'] > 0 ? '+' : ''}${p.typeBreakdown['tai'] || 0}</span>
-                    </div>
-                </div>
-            </div>
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            const filterPlayer = document.getElementById('logPlayerFilter').value;
+            const dataToRender = filterPlayer === 'all' ? rawData.slice(0, 20) : rawData.filter(l => l.scores.includes(filterPlayer));
 
-            <div class="md:col-span-3 tile-card p-6 bg-white">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2 text-center">🏅 生涯成就</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-amber-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-amber-800">最高連勝</p>
-                        <p class="text-3xl font-black text-amber-600">${p.maxStreak || 0} 局</p>
+            container.innerHTML = dataToRender.map(l => {
+                const isHK = l.type.toLowerCase() === 'hk';
+                const scoresHtml = l.scores.split(';').map(s => {
+                    const scoreNum = parseInt(s.match(/[+-]?\d+/));
+                    const isHighlight = filterPlayer !== 'all' && s.includes(filterPlayer);
+                    return `<div class="flex justify-between items-center px-3 py-2 rounded-lg ${isHighlight ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-gray-50'}">
+                        <span class="text-[11px] font-bold">${s.trim().split(' ')[0]}</span>
+                        <span class="text-[11px] font-black ${scoreNum >= 0 ? 'text-emerald-600' : 'text-red-600'}">${scoreNum > 0 ? '+' : ''}${scoreNum}</span>
+                    </div>`;
+                }).join('');
+                return `
+                <div class="tile-card p-5 bg-white border-t-4 ${isHK ? 'border-t-blue-500' : 'border-t-amber-500'}">
+                    <div class="flex justify-between items-start mb-4">
+                        <div><span class="text-[10px] text-gray-400 block">日期</span><span class="text-sm font-black text-emerald-900 italic">${l.date}</span></div>
+                        <span class="text-[10px] text-white px-3 py-1 rounded-full ${isHK ? 'bg-blue-600' : 'bg-amber-600'} shadow-sm">${isHK ? '🀄 廣東牌' : '🇹🇼 港式台牌'}</span>
                     </div>
-                    <div class="bg-emerald-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-emerald-800">單局最高</p>
-                        <p class="text-3xl font-black text-emerald-600">+${p.maxWin}</p>
-                    </div>
-                    <div class="bg-blue-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-blue-800">總勝率</p>
-                        <p class="text-3xl font-black text-blue-600">${((p.wins / p.games) * 100).toFixed(1)}%</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-gray-800">總對局數</p>
-                        <p class="text-3xl font-black text-gray-600">${p.games}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
+                    <div class="grid grid-cols-2 gap-2">${scoresHtml}</div>
+                </div>`;
+            }).join('');
+        }
+
         function renderAll() {
             renderRankTable('all');
             renderHall();
             renderLogs();
             renderPersonal();
         }
-function viewPlayer(name) {
-    // 1. 先將 Ava 嘅 logic 暫時套用到點擊嘅人身上 (如果你想睇嗰個人嘅數據)
-    // 注意：目前 renderPersonal 係 hardcode 咗睇 'Ava'，
-    // 如果要睇所有人，需要將 renderPersonal 改成接受參數，呢個你可以遲啲再改。
-    
-    // 2. 切換去 Tab 3
-    const personalBtn = document.querySelectorAll('.nav-btn')[2]; // 第三個掣
-    switchTab('tab3', personalBtn);
-    
-    // 3. 畫面捲動返上去
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+
+        function viewPlayer(name) {
+            renderPersonal(name);
+            const personalBtn = document.querySelectorAll('.nav-btn')[2];
+            switchTab('tab3', personalBtn);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         window.onload = init;
     </script>
 </body>
