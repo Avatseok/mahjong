@@ -174,66 +174,58 @@
     playerStats = {};
     const sortedData = [...rawData].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // 用一個物件嚟儲存所有人嘅連勝紀錄
-    const streaks = {};
-
     sortedData.forEach(match => {
         const segments = match.scores.split(';');
-        const mType = match.type.toLowerCase();
-
-        segments.forEach(seg => {
+        const matchSummary = segments.map(seg => {
             const parts = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
-            if (parts) {
-                const name = formatName(parts[1]);
-                const score = parseInt(parts[2]);
+            return parts ? { name: formatName(parts[1]), score: parseInt(parts[2]) } : null;
+        }).filter(x => x);
 
-                if (!playerStats[name]) {
-                    playerStats[name] = { 
-                        total: 0, games: 0, wins: 0, maxWin: 0, 
-                        maxStreak: 0, currentStreak: 0,
-                        yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
-                        buddies: {} 
-                    };
-                }
-
-                const p = playerStats[name];
-                p.total += score;
-                p.games += 1;
-                
-                // 計算連勝
-                if (score > 0) {
-                    p.wins += 1;
-                    p.currentStreak++;
-                    if (p.currentStreak > p.maxStreak) p.maxStreak = p.currentStreak;
-                } else {
-                    p.currentStreak = 0;
-                }
-                
-                if (score > p.maxWin) p.maxWin = score;
-
-                // 年度數據
-                if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
-                p.yearly[match.year].score += score;
-                p.yearly[match.year].games += 1;
-
-                // 玩法盈虧 (原本呢度鎖死咗 Ava，而家開放咗)
-                p.typeBreakdown[mType] = (p.typeBreakdown[mType] || 0) + score;
-
-                // 玄學數據 (計所有人嘅貴人同天敵)
-                segments.forEach(s => {
-                    const pMatch = s.trim().match(/^(.+?)\s+([+-]?\d+)$/);
-                    if (pMatch) {
-                        const oppName = formatName(pMatch[1]);
-                        if (oppName !== name) {
-                            p.buddies[oppName] = (p.buddies[oppName] || 0) + score;
-                        }
-                    }
-                });
+        matchSummary.forEach(me => {
+            if (!playerStats[me.name]) {
+                playerStats[me.name] = { 
+                    total: 0, games: 0, wins: 0, maxWin: 0, 
+                    maxStreak: 0, currentStreak: 0,
+                    yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
+                    buddies: {} 
+                };
             }
+
+            const p = playerStats[me.name];
+            p.total += me.score;
+            p.games += 1;
+
+            // 連勝與年度邏輯 (保留不變)
+            if (me.score > 0) {
+                p.wins += 1;
+                p.currentStreak++;
+                if (p.currentStreak > p.maxStreak) p.maxStreak = p.currentStreak;
+            } else { p.currentStreak = 0; }
+            if (me.score > p.maxWin) p.maxWin = me.score;
+            if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
+            p.yearly[match.year].score += me.score;
+            p.yearly[match.year].games += 1;
+            p.typeBreakdown[match.type.toLowerCase()] = (p.typeBreakdown[match.type.toLowerCase()] || 0) + me.score;
+
+            // --- 新的「貴人/天敵」計法 ---
+            matchSummary.forEach(other => {
+                if (me.name === other.name) return;
+
+                // 如果我贏錢，我計緊邊個「供獻」俾我
+                if (me.score > 0) {
+                    // 淨係計同場嗰啲輸咗錢嘅人，將我贏嘅錢按比例分落去佢哋度
+                    // 簡單化處理：直接當作我贏嘅錢，係由場上其餘所有人「分擔」
+                    // 咁樣計出嚟嘅數值會比較接近「佢俾咗幾多錢我」
+                    p.buddies[other.name] = (p.buddies[other.name] || 0) + (me.score / (matchSummary.length - 1));
+                } 
+                // 如果我輸錢，計緊我「進貢」咗俾邊個
+                else if (me.score < 0) {
+                    p.buddies[other.name] = (p.buddies[other.name] || 0) + (me.score / (matchSummary.length - 1));
+                }
+            });
         });
     });
 }
-
         function switchTab(id, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
