@@ -110,32 +110,53 @@
             }
         }
 
-        function processData() {
-            playerStats = {};
-            rawData.forEach(match => {
-                const segments = match.scores.split(';');
-                segments.forEach(seg => {
-                    const parts = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
-                    if (parts) {
-                        const name = formatName(parts[1]);
-                        const score = parseInt(parts[2]);
-                        if (!playerStats[name]) {
-                            playerStats[name] = { total: 0, games: 0, wins: 0, maxWin: 0, yearly: {} };
-                        }
-                        playerStats[name].total += score;
-                        playerStats[name].games += 1;
-                        if (score > 0) playerStats[name].wins += 1;
-                        if (score > playerStats[name].maxWin) playerStats[name].maxWin = score;
-                        
-                        if (!playerStats[name].yearly[match.year]) {
-    playerStats[name].yearly[match.year] = { score: 0, games: 0 };
-}
-playerStats[name].yearly[match.year].score += score;
-playerStats[name].yearly[match.year].games += 1;
+       function processData() {
+    playerStats = {};
+    // 先按日期由舊到新排序，計算連勝先準確
+    const sortedData = [...rawData].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // 追蹤 Ava 連勝用
+    let avaCurrentStreak = 0;
+    let avaMaxStreak = 0;
+
+    sortedData.forEach(match => {
+        const segments = match.scores.split(';');
+        segments.forEach(seg => {
+            const parts = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
+            if (parts) {
+                const name = formatName(parts[1]);
+                const score = parseInt(parts[2]);
+                
+                if (!playerStats[name]) {
+                    playerStats[name] = { total: 0, games: 0, wins: 0, maxWin: 0, yearly: {} };
+                }
+                
+                playerStats[name].total += score;
+                playerStats[name].games += 1;
+                if (score > 0) playerStats[name].wins += 1;
+                if (score > playerStats[name].maxWin) playerStats[name].maxWin = score;
+
+                if (!playerStats[name].yearly[match.year]) {
+                    playerStats[name].yearly[match.year] = { score: 0, games: 0 };
+                }
+                playerStats[name].yearly[match.year].score += score;
+                playerStats[name].yearly[match.year].games += 1;
+
+                // 專門測算 Ava 的連勝
+                if (name === 'Ava') {
+                    if (score > 0) {
+                        avaCurrentStreak++;
+                        if (avaCurrentStreak > avaMaxStreak) avaMaxStreak = avaCurrentStreak;
+                    } else {
+                        avaCurrentStreak = 0;
                     }
-                });
-            });
-        }
+                }
+            }
+        });
+    });
+    // 將紀錄儲存返落 Ava 身上
+    if (playerStats['Ava']) playerStats['Ava'].maxStreak = avaMaxStreak;
+}
 
         function switchTab(id, btn) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -221,11 +242,65 @@ playerStats[name].yearly[match.year].games += 1;
                 </div>
             `).join('');
         }
+        // 呢段係新加嘅，直接貼喺 script 入面就得
+function renderPersonal() {
+    const container = document.getElementById('personalHero');
+    const p = playerStats['Ava'];
+    if (!p) return;
+
+    container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="tile-card p-6 text-center bg-white flex flex-col justify-center">
+                <p class="text-xs font-black text-gray-400 mb-2 uppercase tracking-widest italic">Cumulative Profit (Ava)</p>
+                <p class="text-6xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                    ${p.total > 0 ? '+' : ''}${p.total}
+                </p>
+            </div>
+            
+            <div class="md:col-span-2 tile-card p-6 bg-white">
+                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2 italic">📅 Yearly Status</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    ${['2026', '2025', '2024'].map(yr => `
+                        <div class="text-center p-4 bg-emerald-50/50 rounded-xl">
+                            <p class="text-[10px] font-bold text-gray-400">${yr} YTD</p>
+                            <p class="text-2xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                                ${(p.yearly[yr]?.score || 0) > 0 ? '+' : ''}${(p.yearly[yr]?.score || 0)}
+                            </p>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="md:col-span-3 tile-card p-8 bg-white border-t-8 border-amber-400">
+                <h3 class="font-black text-emerald-900 mb-6 text-center text-xl italic underline decoration-amber-400">🏆 Career Milestones</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-amber-100 p-4 rounded-2xl text-center shadow-inner">
+                        <p class="text-[10px] font-bold text-amber-800 uppercase">最高連勝</p>
+                        <p class="text-3xl font-black text-amber-600">${p.maxStreak || 0} <span class="text-sm">局</span></p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-2xl text-center">
+                        <p class="text-[10px] font-bold text-emerald-800 uppercase">單局最高</p>
+                        <p class="text-3xl font-black text-emerald-600">+${p.maxWin}</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-2xl text-center">
+                        <p class="text-[10px] font-bold text-blue-800 uppercase">總勝率</p>
+                        <p class="text-3xl font-black text-blue-600">${((p.wins / p.games) * 100).toFixed(1)}%</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl text-center">
+                        <p class="text-[10px] font-bold text-gray-800 uppercase">對局總量</p>
+                        <p class="text-3xl font-black text-gray-600">${p.games}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
 
         function renderAll() {
             renderRankTable('all');
             renderHall();
             renderLogs();
+            renderPersonal();
         }
 
         window.onload = init;
