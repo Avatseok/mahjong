@@ -56,14 +56,11 @@
             <div id="hallGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <div id="tab3" class="tab-content">
-            <div id="personalContainer" class="max-w-4xl mx-auto">
-                <div class="text-center text-white mb-8">
-                    <p class="italic">請點擊下方「名人堂」或「龍虎榜」玩家名（開發中：目前預設顯示榜首數據）</p>
-                </div>
-                <div id="personalHero"></div>
-            </div>
-        </div>
+       <div id="tab3" class="tab-content">
+    <div id="personalContainer" class="max-w-4xl mx-auto">
+        <div id="personalHero"></div>
+    </div>
+</div>
 
         <div id="tab4" class="tab-content">
     <div class="max-w-2xl mx-auto mb-6 flex items-center justify-between bg-emerald-900/80 p-4 rounded-2xl border border-emerald-700 shadow-xl">
@@ -104,9 +101,9 @@
                 const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
                 
                 rawData = rows.slice(1).map(row => {
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
-                    return { date: cols[0], type: cols[1], scores: cols[2], year: cols[0].split('-')[0] };
-                });
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
+                return { date: cols[0], type: cols[1], scores: cols[2], year: cols[0] ? cols[0].split('-')[0] : "" };
+            }).reverse(); // <--- 加呢一行，成個網頁嘅紀錄就會由新到舊排
 
                 processData();
         
@@ -386,7 +383,18 @@ function renderPersonal() {
             renderLogs();
             renderPersonal();
         }
-
+function viewPlayer(name) {
+    // 1. 先將 Ava 嘅 logic 暫時套用到點擊嘅人身上 (如果你想睇嗰個人嘅數據)
+    // 注意：目前 renderPersonal 係 hardcode 咗睇 'Ava'，
+    // 如果要睇所有人，需要將 renderPersonal 改成接受參數，呢個你可以遲啲再改。
+    
+    // 2. 切換去 Tab 3
+    const personalBtn = document.querySelectorAll('.nav-btn')[2]; // 第三個掣
+    switchTab('tab3', personalBtn);
+    
+    // 3. 畫面捲動返上去
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
         window.onload = init;
     </script>
 </body>
