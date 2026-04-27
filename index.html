@@ -15,50 +15,7 @@
 
     <div id="testList" class="space-y-2"></div>
 
-    <script>
-        // 1. 放入你條 CSV URL
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_qNslS5ceeWEfUtrDgWZskGuvBHvg0zzgvIj4UKZCqUOGG2cbZdTYFiLh0bY-FRcH-uLqd0xYJaGr/pub?output=csv';
-        
-        let ALL_PLAYERS = [];
-
-        async function testConnection() {
-            const statusDiv = document.getElementById('status');
-            const listDiv = document.getElementById('testList');
-
-            try {
-                const response = await fetch(CSV_URL);
-                if (!response.ok) throw new Error('網絡回應唔 OK');
-                
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
-                const dataRows = rows.slice(1);
-
-                ALL_PLAYERS = dataRows.map(row => {
-                    const cols = row.split(',').map(c => c.trim());
-                    return { name: cols[0], sum: cols[1] };
-                });
-
-                if (ALL_PLAYERS.length > 0) {
-                    statusDiv.innerHTML = "✅ 連線成功！搵到 " + ALL_PLAYERS.length + " 個玩家。";
-                    statusDiv.className = "p-4 rounded bg-emerald-900 border border-emerald-500 mb-5";
-                    
-                    // 試下印幾個名出嚟睇下
-                    listDiv.innerHTML = ALL_PLAYERS.map(p => `
-                        <div class="bg-slate-700 p-2 rounded">${p.name} (得分: ${p.sum})</div>
-                    `).join('');
-                } else {
-                    statusDiv.innerHTML = "⚠️ 連到線，但 CSV 入面好似冇數據。";
-                }
-
-            } catch (error) {
-                statusDiv.innerHTML = "❌ 連線失敗！原因：" + error.message;
-                statusDiv.className = "p-4 rounded bg-red-900 border border-red-500 mb-5";
-                console.error(error);
-            }
-        }
-
-        window.onload = testConnection;
-    </script>
+    
 <body class="p-4 md:p-8 bg-[#064e3b]">
 
     <div class="max-w-6xl mx-auto">
@@ -89,83 +46,7 @@
         </div>
     </div>
 
-    <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_qNslS5ceeWEfUtrDgWZskGuvBHvg0zzgvIj4UKZCqUOGG2cbZdTYFiLh0bY-FRcH-uLqd0xYJaGr/pub?output=csv';
-        let ALL_PLAYERS = [];
-
-        // 1. 攞數據功能 (你頭先成功咗嗰段)
-        async function fetchData() {
-            try {
-                const response = await fetch(CSV_URL);
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
-                const dataRows = rows.slice(1);
-
-                ALL_PLAYERS = dataRows.map(row => {
-                    const cols = row.split(',').map(c => c.trim());
-                    return {
-                        name: cols[0] || '無名氏',
-                        sum: parseInt(cols[1]) || 0,
-                        games: parseInt(cols[2]) || 0,
-                        icon: cols[5] || '🀄',
-                        title: cols[6] || '雀友',
-                        yearly: {
-                            "2026": parseInt(cols[10]) || 0
-                        }
-                    };
-                });
-                renderRank('all'); // 攞完數自動畫一次
-            } catch (e) {
-                console.error("出錯:", e);
-            }
-        }
-
-        // 2. 畫出龍虎榜
-        function renderRank(year) {
-            const container = document.getElementById('rankContainer');
-            
-            // 排序：邊個贏得多排先
-            let sorted = [...ALL_PLAYERS].map(p => ({
-                ...p, 
-                displaySum: year === 'all' ? p.sum : (p.yearly[year] || 0)
-            })).sort((a, b) => b.displaySum - a.displaySum);
-
-            container.innerHTML = sorted.map((p, i) => `
-                <div class="p-4 flex justify-between items-center bg-white border-l-[10px] ${i < 3 ? 'border-yellow-500' : 'border-transparent'}">
-                    <div class="flex items-center gap-4">
-                        <span class="w-6 font-black text-gray-400 italic">${i + 1}</span>
-                        <div class="text-2xl">${p.icon}</div>
-                        <div>
-                            <p class="font-black text-emerald-900">${p.name}</p>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase">${p.title}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-black ${p.displaySum >= 0 ? 'text-emerald-600' : 'text-red-600'}">
-                            ${p.displaySum > 0 ? '+' : ''}${p.displaySum}
-                        </p>
-                        <p class="text-[10px] text-gray-400">${p.games} 局</p>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // 3. 切換 Tab 功能
-        function switchTab(id, btn) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('bg-[#fdfbf7]', 'text-[#064e3b]', 'active');
-                b.classList.add('bg-emerald-800', 'text-white');
-            });
-            
-            btn.classList.remove('bg-emerald-800', 'text-white');
-            btn.classList.add('bg-[#fdfbf7]', 'text-[#064e3b]', 'active');
-        }
-
-        window.onload = fetchData;
-    </script>
+   
 <body class="p-4 md:p-8 bg-[#064e3b]">
 
     <div class="max-w-6xl mx-auto">
@@ -200,108 +81,105 @@
             </div>
         </div>
     </div>
-
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_qNslS5ceeWEfUtrDgWZskGuvBHvg0zzgvIj4UKZCqUOGG2cbZdTYFiLh0bY-FRcH-uLqd0xYJaGr/pub?output=csv';
-        let ALL_PLAYERS = [];
+    // 1. 設定區
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_qNslS5ceeWEfUtrDgWZskGuvBHvg0zzgvIj4UKZCqUOGG2cbZdTYFiLh0bY-FRcH-uLqd0xYJaGr/pub?output=csv';
+    let ALL_PLAYERS = [];
 
-        // 1. 攞數據
-        async function fetchData() {
-            const debug = document.getElementById('debug-status');
-            try {
-                debug.innerText = "正在連線 Google Sheet...";
-                const response = await fetch(CSV_URL);
-                const csvText = await response.text();
-                
-                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
-                const dataRows = rows.slice(1);
+    // 防錯轉換器：確保攞到嘅係數字，唔係 NaN
+    const safeInt = (val) => {
+        const p = parseInt(val);
+        return isNaN(p) ? 0 : p;
+    };
 
-                ALL_PLAYERS = dataRows.map(row => {
-                    const cols = row.split(',').map(c => c.trim());
-                    return {
-                        name: cols[0] || '無名氏',
-                        sum: parseInt(cols[1]) || 0,
-                        games: parseInt(cols[2]) || 0,
-                        winRate: cols[3] || '0',
-                        max: cols[4] || '0',
-                        icon: cols[5] || '🀄',
-                        title: cols[6] || '雀友',
-                        yearly: {
-                            "2024": parseInt(cols[8]) || 0,
-                            "2025": parseInt(cols[9]) || 0,
-                            "2026": parseInt(cols[10]) || 0
-                        }
-                    };
-                });
+    // 2. 攞數據功能
+    async function fetchData() {
+        const debug = document.getElementById('debug-status');
+        try {
+            debug.innerText = "連線中...";
+            const response = await fetch(CSV_URL);
+            if (!response.ok) throw new Error('連唔到 Google Sheet');
+            
+            const csvText = await response.text();
+            const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
+            const dataRows = rows.slice(1); // 攞走標題行
 
-                debug.innerText = `✅ 成功讀取 ${ALL_PLAYERS.length} 位玩家數據`;
-                renderRank('all'); 
+            ALL_PLAYERS = dataRows.map(row => {
+                const cols = row.split(',').map(c => c.trim());
+                return {
+                    name: cols[0] || '無名氏',
+                    sum: safeInt(cols[1]),
+                    games: safeInt(cols[2]),
+                    icon: cols[5] || '🀄',
+                    title: cols[6] || '雀友',
+                    yearly: {
+                        "2024": safeInt(cols[8]),
+                        "2025": safeInt(cols[9]),
+                        "2026": safeInt(cols[10])
+                    }
+                };
+            });
 
-            } catch (e) {
-                debug.innerText = "❌ 讀取失敗: " + e.message;
-                console.error(e);
-            }
+            debug.innerText = `✅ 成功載入 ${ALL_PLAYERS.length} 人`;
+            renderRank('all'); // 預設顯示總榜
+
+        } catch (e) {
+            debug.innerText = "❌ 出錯: " + e.message;
+            console.error(e);
         }
+    }
 
-        // 2. 畫出龍虎榜
-        function renderRank(year) {
-            const container = document.getElementById('rankContainer');
-            if (!ALL_PLAYERS.length) return;
+    // 3. 畫出龍虎榜
+    function renderRank(year) {
+        const container = document.getElementById('rankContainer');
+        if (!ALL_PLAYERS.length) return;
 
-            // 根據年份或總分過濾同排序
-            let displayList = ALL_PLAYERS.map(p => ({
-                ...p,
-                currentScore: year === 'all' ? p.sum : (p.yearly[year] || 0)
-            }))
-            .filter(p => year === 'all' || p.currentScore !== 0) // 2026 冇打過嘅唔出
-            .sort((a, b) => b.currentScore - a.currentScore);
+        // 排序：最高分排先
+        let list = ALL_PLAYERS.map(p => ({
+            ...p,
+            score: year === 'all' ? p.sum : (p.yearly[year] || 0)
+        })).sort((a, b) => b.score - a.score);
 
-            if (displayList.length === 0) {
-                container.innerHTML = `<p class="p-10 text-center text-gray-400 font-bold">⚠️ ${year} 年份暫時未有對局紀錄</p>`;
-                return;
-            }
-
-            container.innerHTML = displayList.map((p, i) => `
-                <div class="p-4 flex justify-between items-center bg-white border-l-[8px] ${i === 0 ? 'border-yellow-400 bg-yellow-50/30' : i === 1 ? 'border-slate-300' : i === 2 ? 'border-orange-400' : 'border-transparent'}">
-                    <div class="flex items-center gap-4">
-                        <span class="w-6 font-black text-gray-300 italic text-lg">${i + 1}</span>
-                        <div class="text-3xl">${p.icon}</div>
-                        <div>
-                            <p class="font-black text-emerald-900 text-lg leading-tight">${p.name}</p>
-                            <p class="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold inline-block uppercase mt-1">${p.title}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-black text-xl ${p.currentScore >= 0 ? 'text-emerald-600' : 'text-red-600'}">
-                            ${p.currentScore > 0 ? '+' : ''}${p.currentScore}
-                        </p>
-                        <p class="text-[11px] text-gray-400 font-bold">${p.games} 局</p>
+        container.innerHTML = list.map((p, i) => `
+            <div class="p-4 flex justify-between items-center bg-white border-l-[8px] ${i === 0 ? 'border-yellow-400' : 'border-transparent'}">
+                <div class="flex items-center gap-4">
+                    <span class="w-6 font-black text-gray-300 italic">${i + 1}</span>
+                    <div class="text-3xl">${p.icon}</div>
+                    <div>
+                        <p class="font-black text-emerald-900">${p.name}</p>
+                        <p class="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold uppercase">${p.title}</p>
                     </div>
                 </div>
-            `).join('');
-        }
+                <div class="text-right">
+                    <p class="font-black text-xl ${p.score >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                        ${p.score > 0 ? '+' : ''}${p.score}
+                    </p>
+                    <p class="text-[11px] text-gray-400 font-bold">${p.games} 局</p>
+                </div>
+            </div>
+        `).join('');
+    }
 
-        // 3. 切換分頁 (改用更穩陣嘅寫法)
-        function switchTab(tabId) {
-            // 隱藏所有內容
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            // 顯示目標內容
-            document.getElementById(tabId).classList.remove('hidden');
+    // 4. 切換 Tab 
+    function switchTab(tabId) {
+        // 隱藏內容
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
 
-            // 處理掣嘅色
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-[#fdfbf7]', 'text-[#064e3b]', 'shadow-lg');
-                btn.classList.add('bg-emerald-800', 'text-white');
-            });
-            const activeBtn = document.getElementById('btn-' + tabId);
+        // 改掣色
+        document.querySelectorAll('.nav-btn').forEach(b => {
+            b.classList.remove('bg-[#fdfbf7]', 'text-[#064e3b]', 'shadow-lg');
+            b.classList.add('bg-emerald-800', 'text-white');
+        });
+        const activeBtn = document.getElementById('btn-' + tabId);
+        if (activeBtn) {
             activeBtn.classList.add('bg-[#fdfbf7]', 'text-[#064e3b]', 'shadow-lg');
             activeBtn.classList.remove('bg-emerald-800', 'text-white');
         }
+    }
 
-        // 啟動！
-        window.onload = fetchData;
-    </script>
+    // 5. 網頁一開即行
+    window.onload = fetchData;
+</script>
 </body>
 </html>
