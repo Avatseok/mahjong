@@ -127,8 +127,11 @@
                         if (score > 0) playerStats[name].wins += 1;
                         if (score > playerStats[name].maxWin) playerStats[name].maxWin = score;
                         
-                        if (!playerStats[name].yearly[match.year]) playerStats[name].yearly[match.year] = 0;
-                        playerStats[name].yearly[match.year] += score;
+                        if (!playerStats[name].yearly[match.year]) {
+    playerStats[name].yearly[match.year] = { score: 0, games: 0 };
+}
+playerStats[name].yearly[match.year].score += score;
+playerStats[name].yearly[match.year].games += 1;
                     }
                 });
             });
@@ -150,10 +153,18 @@
         function renderRankTable(year) {
             const container = document.getElementById('rankContainer');
             const sorted = Object.keys(playerStats).map(name => {
-                const val = year === 'all' ? playerStats[name].total : (playerStats[name].yearly[year] || 0);
-                return { name, val, games: playerStats[name].games };
-            }).filter(p => p.val !== 0).sort((a,b) => b.val - a.val);
-
+    let val, games;
+    if (year === 'all') {
+        val = playerStats[name].total;
+        games = playerStats[name].games;
+    } else {
+        // 如果嗰年有玩過，就攞嗰年嘅數，否則係 0
+        const yearlyData = playerStats[name].yearly[year] || { score: 0, games: 0 };
+        val = yearlyData.score;
+        games = yearlyData.games;
+    }
+    return { name, val, games };
+}).filter(p => p.val !== 0).sort((a,b) => b.val - a.val);
             container.innerHTML = sorted.map((p, i) => `
                 <div class="rank-row p-4 flex justify-between items-center bg-white ${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
                     <div class="flex items-center gap-4">
