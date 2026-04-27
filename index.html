@@ -66,8 +66,14 @@
         </div>
 
         <div id="tab4" class="tab-content">
-            <div id="logsContainer" class="space-y-4 max-w-2xl mx-auto"></div>
-        </div>
+    <div class="max-w-2xl mx-auto mb-6 flex items-center justify-between bg-emerald-900/80 p-4 rounded-2xl border border-emerald-700 shadow-xl">
+        <label class="text-white font-black text-sm italic">🔍 查閱個人流水帳：</label>
+        <select id="logPlayerFilter" onchange="renderLogs()" class="bg-white text-emerald-900 font-bold py-2 px-4 rounded-xl text-sm outline-none">
+            <option value="all">所有玩家 (All)</option>
+        </select>
+    </div>
+    <div id="logsContainer" class="space-y-4 max-w-2xl mx-auto"></div>
+</div>
 
         <div id="tab5" class="tab-content">
             <div class="max-w-xl mx-auto tile-card p-8 bg-white shadow-xl text-center">
@@ -103,19 +109,30 @@
                 });
 
                 processData();
-                renderAll();
-                document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
+        
+        // 自動填充流水帳篩選選單
+        const logSelect = document.getElementById('logPlayerFilter');
+        if (logSelect) {
+            logSelect.innerHTML = '<option value="all">所有玩家 (All)</option>';
+            Object.keys(playerStats).sort().forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = name;
+                logSelect.appendChild(opt);
+            });
+        }
+
+        renderAll();
+        document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
             } catch (err) {
                 document.getElementById('status').innerText = "❌ LOAD FAILED";
             }
         }
 
-       function processData() {
+    function processData() {
     playerStats = {};
-    // 先按日期由舊到新排序，計算連勝先準確
     const sortedData = [...rawData].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // 追蹤 Ava 連勝用
     let avaCurrentStreak = 0;
     let avaMaxStreak = 0;
 
@@ -126,11 +143,15 @@
             if (parts) {
                 const name = formatName(parts[1]);
                 const score = parseInt(parts[2]);
-                
+
                 if (!playerStats[name]) {
-                    playerStats[name] = { total: 0, games: 0, wins: 0, maxWin: 0, yearly: {} };
+                    playerStats[name] = { 
+                        total: 0, games: 0, wins: 0, maxWin: 0, 
+                        yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
+                        buddies: {} 
+                    };
                 }
-                
+
                 playerStats[name].total += score;
                 playerStats[name].games += 1;
                 if (score > 0) playerStats[name].wins += 1;
@@ -142,38 +163,30 @@
                 playerStats[name].yearly[match.year].score += score;
                 playerStats[name].yearly[match.year].games += 1;
 
-                // 專門測算 Ava 的連勝
-            // 專門測算 Ava 的詳細數據
-if (name === 'Ava') {
-    // 1. 連勝計算
-    if (score > 0) {
-        avaCurrentStreak++;
-        if (avaCurrentStreak > avaMaxStreak) avaMaxStreak = avaCurrentStreak;
-    } else {
-        avaCurrentStreak = 0;
-    }
+                if (name === 'Ava') {
+                    if (score > 0) {
+                        avaCurrentStreak++;
+                        if (avaCurrentStreak > avaMaxStreak) avaMaxStreak = avaCurrentStreak;
+                    } else {
+                        avaCurrentStreak = 0;
+                    }
+                    const mType = match.type.toLowerCase();
+                    playerStats['Ava'].typeBreakdown[mType] = (playerStats['Ava'].typeBreakdown[mType] || 0) + score;
 
-    // 2. 玩法盈虧分析
-    if (!playerStats['Ava'].typeBreakdown) playerStats['Ava'].typeBreakdown = { 'hk': 0, 'tai': 0 };
-    playerStats['Ava'].typeBreakdown[match.type] = (playerStats['Ava'].typeBreakdown[match.type] || 0) + score;
-
-    // 3. 牌局玄學：分析同局對手
-    if (!playerStats['Ava'].nemesis) playerStats['Ava'].nemesis = {}; // 剋星
-    if (!playerStats['Ava'].buddies) playerStats['Ava'].buddies = {}; // 貴人
-    
-    const opponents = segments.map(s => {
-        const p = s.trim().match(/^(.+?)\s+([+-]?\d+)$/);
-        return p ? { name: formatName(p[1]), score: parseInt(p[2]) } : null;
-    }).filter(o => o && o.name !== 'Ava');
-
-    opponents.forEach(opp => {
-        // 如果 Ava 贏而對手輸，或者 Ava 贏得多過對手，視為從對手身上獲利 (貴人)
-        // 簡化邏輯：紀錄 Ava 同呢個人打嗰陣，Ava 嘅盈虧總和
-        playerStats['Ava'].buddies[opp.name] = (playerStats['Ava'].buddies[opp.name] || 0) + score;
+                    // 玄學數據分析
+                    segments.forEach(s => {
+                        const p = s.trim().match(/^(.+?)\s+([+-]?\d+)$/);
+                        if (p && formatName(p[1]) !== 'Ava') {
+                            const oppName = formatName(p[1]);
+                            playerStats['Ava'].buddies[oppName] = (playerStats['Ava'].buddies[oppName] || 0) + score;
+                        }
+                    });
+                }
+            }
+        });
     });
-}
-    // 將紀錄儲存返落 Ava 身上
     if (playerStats['Ava']) playerStats['Ava'].maxStreak = avaMaxStreak;
+}
 }
 
         function switchTab(id, btn) {
@@ -243,23 +256,38 @@ if (name === 'Ava') {
             }).join('');
         }
 
-        function renderLogs() {
-            const container = document.getElementById('logsContainer');
-            container.innerHTML = rawData.slice(0, 20).map(l => `
-                <div class="tile-card p-5 bg-white border-l-8 border-l-emerald-800">
-                    <div class="flex justify-between text-[10px] font-black text-gray-400 mb-3">
-                        <span>📅 ${l.date}</span>
-                        <span class="uppercase bg-emerald-800 text-white px-2 py-0.5 rounded">${l.type}</span>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        ${l.scores.split(';').map(s => {
-                            const isWin = s.includes('+') || (!s.includes('-') && parseInt(s.match(/\d+/)) > 0);
-                            return `<span class="score-pill ${isWin?'win':'lose'}">${s.trim()}</span>`
-                        }).join('')}
-                    </div>
+       function renderLogs() {
+    const container = document.getElementById('logsContainer');
+    const filterSelect = document.getElementById('logPlayerFilter');
+    const filterPlayer = filterSelect ? filterSelect.value : 'all';
+    
+    // 如果有篩選，就顯示所有相關紀錄；否則只顯示最近 20 條
+    const dataToRender = filterPlayer === 'all' ? rawData.slice(0, 20) : rawData.filter(l => l.scores.includes(filterPlayer));
+
+    container.innerHTML = dataToRender.map(l => {
+        const isHK = l.type.toLowerCase() === 'hk';
+        const scoresHtml = l.scores.split(';').map(s => {
+            const isHighlight = filterPlayer !== 'all' && s.includes(filterPlayer);
+            const scoreNum = parseInt(s.match(/[+-]?\d+/));
+            return `
+                <div class="flex justify-between items-center px-3 py-2 rounded-lg ${isHighlight ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'bg-gray-50'}">
+                    <span class="text-[11px] font-bold ${isHighlight ? 'text-emerald-900' : 'text-gray-600'}">${s.trim().split(' ')[0]}</span>
+                    <span class="text-[11px] font-black ${scoreNum >= 0 ? 'text-emerald-600' : 'text-red-600'}">${scoreNum > 0 ? '+' : ''}${scoreNum}</span>
                 </div>
-            `).join('');
-        }
+            `;
+        }).join('');
+
+        return `
+            <div class="tile-card p-5 bg-white border-t-4 ${isHK ? 'border-t-blue-500' : 'border-t-amber-500'}">
+                <div class="flex justify-between items-start mb-4">
+                    <div><span class="text-[10px] font-black text-gray-400 block mb-1">對局日期</span><span class="text-sm font-black text-emerald-900 italic">${l.date}</span></div>
+                    <span class="text-[10px] font-black text-white px-3 py-1 rounded-full ${isHK ? 'bg-blue-600' : 'bg-amber-600'} shadow-sm uppercase italic">${isHK ? '🀄 廣東牌' : '🇹🇼 港式台牌'}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">${scoresHtml}</div>
+            </div>
+        `;
+    }).join('');
+}
         // 呢段係新加嘅，直接貼喺 script 入面就得
 function renderPersonal() {
     const container = document.getElementById('personalHero');
