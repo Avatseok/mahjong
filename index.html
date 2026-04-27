@@ -392,7 +392,7 @@ function renderPersonal() {
                 <div class="grid grid-cols-3 gap-4">
                     ${['2026', '2025', '2024'].map(yr => `
                         <div class="text-center p-4 bg-gray-50 rounded-xl">
-                            <p class="text-[10px] font-bold text-gray-400">${yr} YTD</p>
+                            <p class="text-[10px] font-bold text-gray-400">${yr} </p>
                             <p class="text-2xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">
                                 ${(p.yearly[yr]?.score || 0) > 0 ? '+' : ''}${(p.yearly[yr]?.score || 0)}
                             </p>
