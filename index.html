@@ -56,8 +56,14 @@
             <div id="hallGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-       <div id="tab3" class="tab-content">
-    <div id="personalContainer" class="max-w-4xl mx-auto">
+      <div id="tab3" class="tab-content">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6 flex items-center justify-between bg-emerald-900/80 p-4 rounded-2xl border border-emerald-700 shadow-xl">
+            <label class="text-white font-black text-sm italic">👤 切換玩家檔案：</label>
+            <select id="playerSelector" onchange="renderPersonal(this.value)" class="bg-white text-emerald-900 font-bold py-2 px-4 rounded-xl text-sm outline-none">
+                </select>
+        </div>
+        
         <div id="personalHero"></div>
     </div>
 </div>
@@ -138,31 +144,47 @@
 
         const formatName = (n) => n.trim().toLowerCase().charAt(0).toUpperCase() + n.trim().toLowerCase().slice(1);
 
-        async function init() {
-            try {
-                const response = await fetch(URL);
-                const csvText = await response.text();
-                const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
-                
-                rawData = rows.slice(1).map(row => {
-                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
-                return { date: cols[0], type: cols[1], scores: cols[2], year: cols[0] ? cols[0].split('-')[0] : "" };
-            }).reverse(); // <--- 加呢一行，成個網頁嘅紀錄就會由新到舊排
-
-                processData();
+       async function init() {
+    try {
+        const response = await fetch(URL);
+        const csvText = await response.text();
+        const rows = csvText.split(/\r?\n/).filter(r => r.trim() !== '');
         
-        // 自動填充流水帳篩選選單
+        rawData = rows.slice(1).map(row => {
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim());
+            return { date: cols[0], type: cols[1], scores: cols[2], year: cols[0] ? cols[0].split('-')[0] : "" };
+        }).reverse();
+
+        processData();
+
+        // --- 同步所有選單 (流水帳選單 + 個人戰績選單) ---
         const logSelect = document.getElementById('logPlayerFilter');
+        const personalSelect = document.getElementById('playerSelector'); // 個人戰績個選單
+        const players = Object.keys(playerStats).sort();
+
+        // 填充流水帳選單
         if (logSelect) {
             logSelect.innerHTML = '<option value="all">所有玩家 (All)</option>';
-            Object.keys(playerStats).sort().forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.innerText = name;
-                logSelect.appendChild(opt);
+            players.forEach(name => {
+                logSelect.innerHTML += `<option value="${name}">${name}</option>`;
             });
         }
 
+        // 填充個人戰績選單
+        if (personalSelect) {
+            personalSelect.innerHTML = ''; // 清空舊嘅
+            players.forEach(name => {
+                personalSelect.innerHTML += `<option value="${name}">${name}</option>`;
+            });
+        }
+
+        renderAll();
+        document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
+    } catch (err) {
+        document.getElementById('status').innerText = "❌ LOAD FAILED";
+        console.error(err);
+    }
+}
         renderAll();
         document.getElementById('status').innerText = "✅ DATA SYNCHRONIZED";
             } catch (err) {
