@@ -166,5 +166,142 @@
 
         window.onload = fetchData;
     </script>
+<body class="p-4 md:p-8 bg-[#064e3b]">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-5xl md:text-7xl font-black text-[#fdfbf7] drop-shadow-[4px_4px_0px_#b91c1c]">🀄️ 雀王爭霸戰 🀄️</h1>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-3 mb-10">
+            <button id="btn-tab1" class="nav-btn bg-[#fdfbf7] text-[#064e3b] px-6 py-3 rounded-xl font-black shadow-lg" onclick="switchTab('tab1')">龍虎榜</button>
+            <button id="btn-tab2" class="nav-btn bg-emerald-800 text-white px-6 py-3 rounded-xl font-black" onclick="switchTab('tab2')">名人堂</button>
+        </nav>
+
+        <div id="debug-status" class="text-center text-[10px] text-emerald-300 mb-2">系統啟動中...</div>
+
+        <div id="tab1" class="tab-content">
+            <div class="flex justify-center gap-2 mb-8">
+                <button class="px-4 py-2 rounded-full bg-emerald-900 text-white text-xs font-bold hover:bg-emerald-700" onclick="renderRank('all')">總排名</button>
+                <button class="px-4 py-2 rounded-full bg-emerald-800 text-white text-xs font-bold hover:bg-emerald-700" onclick="renderRank('2026')">2026</button>
+            </div>
+            
+            <div class="bg-[#fdfbf7] rounded-xl overflow-hidden shadow-2xl border-b-4 border-r-4 border-gray-300">
+                <div id="rankContainer" class="divide-y divide-gray-100">
+                    <p class="p-10 text-center text-gray-400 font-bold">數據載入中，請稍候...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab2" class="tab-content hidden">
+            <div class="text-center p-10 bg-emerald-900/50 rounded-xl text-white border-2 border-dashed border-emerald-700">
+                <p class="text-2xl mb-2">🏆 名人堂</p>
+                <p class="text-gray-400">數據收集中，下一波更新...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ_qNslS5ceeWEfUtrDgWZskGuvBHvg0zzgvIj4UKZCqUOGG2cbZdTYFiLh0bY-FRcH-uLqd0xYJaGr/pub?output=csv';
+        let ALL_PLAYERS = [];
+
+        // 1. 攞數據
+        async function fetchData() {
+            const debug = document.getElementById('debug-status');
+            try {
+                debug.innerText = "正在連線 Google Sheet...";
+                const response = await fetch(CSV_URL);
+                const csvText = await response.text();
+                
+                const rows = csvText.split(/\r?\n/).filter(row => row.trim() !== '');
+                const dataRows = rows.slice(1);
+
+                ALL_PLAYERS = dataRows.map(row => {
+                    const cols = row.split(',').map(c => c.trim());
+                    return {
+                        name: cols[0] || '無名氏',
+                        sum: parseInt(cols[1]) || 0,
+                        games: parseInt(cols[2]) || 0,
+                        winRate: cols[3] || '0',
+                        max: cols[4] || '0',
+                        icon: cols[5] || '🀄',
+                        title: cols[6] || '雀友',
+                        yearly: {
+                            "2024": parseInt(cols[8]) || 0,
+                            "2025": parseInt(cols[9]) || 0,
+                            "2026": parseInt(cols[10]) || 0
+                        }
+                    };
+                });
+
+                debug.innerText = `✅ 成功讀取 ${ALL_PLAYERS.length} 位玩家數據`;
+                renderRank('all'); 
+
+            } catch (e) {
+                debug.innerText = "❌ 讀取失敗: " + e.message;
+                console.error(e);
+            }
+        }
+
+        // 2. 畫出龍虎榜
+        function renderRank(year) {
+            const container = document.getElementById('rankContainer');
+            if (!ALL_PLAYERS.length) return;
+
+            // 根據年份或總分過濾同排序
+            let displayList = ALL_PLAYERS.map(p => ({
+                ...p,
+                currentScore: year === 'all' ? p.sum : (p.yearly[year] || 0)
+            }))
+            .filter(p => year === 'all' || p.currentScore !== 0) // 2026 冇打過嘅唔出
+            .sort((a, b) => b.currentScore - a.currentScore);
+
+            if (displayList.length === 0) {
+                container.innerHTML = `<p class="p-10 text-center text-gray-400 font-bold">⚠️ ${year} 年份暫時未有對局紀錄</p>`;
+                return;
+            }
+
+            container.innerHTML = displayList.map((p, i) => `
+                <div class="p-4 flex justify-between items-center bg-white border-l-[8px] ${i === 0 ? 'border-yellow-400 bg-yellow-50/30' : i === 1 ? 'border-slate-300' : i === 2 ? 'border-orange-400' : 'border-transparent'}">
+                    <div class="flex items-center gap-4">
+                        <span class="w-6 font-black text-gray-300 italic text-lg">${i + 1}</span>
+                        <div class="text-3xl">${p.icon}</div>
+                        <div>
+                            <p class="font-black text-emerald-900 text-lg leading-tight">${p.name}</p>
+                            <p class="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-bold inline-block uppercase mt-1">${p.title}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-xl ${p.currentScore >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                            ${p.currentScore > 0 ? '+' : ''}${p.currentScore}
+                        </p>
+                        <p class="text-[11px] text-gray-400 font-bold">${p.games} 局</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 3. 切換分頁 (改用更穩陣嘅寫法)
+        function switchTab(tabId) {
+            // 隱藏所有內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            // 顯示目標內容
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // 處理掣嘅色
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-[#fdfbf7]', 'text-[#064e3b]', 'shadow-lg');
+                btn.classList.add('bg-emerald-800', 'text-white');
+            });
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('bg-[#fdfbf7]', 'text-[#064e3b]', 'shadow-lg');
+            activeBtn.classList.remove('bg-emerald-800', 'text-white');
+        }
+
+        // 啟動！
+        window.onload = fetchData;
+    </script>
 </body>
 </html>
