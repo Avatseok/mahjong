@@ -3,101 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雀王排行榜 - 重新出發</title>
+    <title>雀王爭霸戰 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@700;900&display=swap');
+        body { font-family: 'Noto Sans HK', sans-serif; background-color: #064e3b; }
+    </style>
 </head>
-<body class="bg-[#064e3b] p-4 font-sans">
+<body class="p-4">
 
     <div class="max-w-md mx-auto">
         <header class="text-center py-10">
-            <h1 class="text-4xl font-black text-white italic drop-shadow-lg">🀄 雀王排行榜</h1>
-            <p id="status" class="text-emerald-300 text-[10px] mt-2 font-mono">檢查權限中...</p>
+            <h1 class="text-4xl font-black text-[#fdfbf7] italic drop-shadow-[3px_3px_0px_#b91c1c]">🀄 雀王排行榜</h1>
+            <p id="status-msg" class="text-emerald-300 text-[10px] mt-2 font-mono uppercase tracking-widest">系統連接中...</p>
         </header>
 
-        <div id="rankList" class="bg-white rounded-3xl shadow-2xl overflow-hidden">
-            <div class="p-10 text-center text-gray-400">
-                正在讀取 Google Sheet...
-            </div>
+        <div id="board" class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border-b-8 border-emerald-900/20">
+            <div class="p-20 text-center text-gray-300">正在計算戰果...</div>
         </div>
     </div>
 
     <script>
-        // 確保呢個 ID 係啱嘅
+        // 1. 填入你的 Sheet ID
         const SHEET_ID = '15oFBkMppeKvViMEBEPyKqnyL1Gyrc9sJp1z8se38QxU';
-        // 改用這個更直接的導出連結
-        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+        // 使用 tq 接口並指定 Sheet1，這是最穩定的讀取方式
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
 
-        async function loadData() {
-            const status = document.getElementById('status');
-            const list = document.getElementById('rankList');
+        async function main() {
+            const status = document.getElementById('status-msg');
+            const board = document.getElementById('board');
 
             try {
-                const response = await fetch(CSV_URL);
-                const text = await response.text();
+                const resp = await fetch(URL);
+                const csv = await resp.text();
                 
-                // 檢查攞到嘅係咪真係 CSV 資料
-                if (text.includes('<!DOCTYPE') || text.includes('google-signin')) {
-                    throw new Error("權限不足！請喺 Google Sheet 撳「共用」並設為「知道連結的任何人」。");
-                }
+                // 檢查是否拿到了 Google 的登入頁面而非數據
+                if (csv.includes('<html')) throw new Error("請檢查 Google Sheet 是否已設為「知道連結的任何人」都可以查看。");
 
-                // 拆開每一行，並處理 CSV 嘅引號
-                const rows = text.split(/\r?\n/).map(row => 
+                const rows = csv.split(/\r?\n/).map(row => 
                     row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim())
                 );
 
-                const header = rows[0]; // 第一行係名
-                const playerNames = header.slice(2); // C 欄打後係人名
-                const scoreboard = {};
-
-                // 初始化每個玩家
+                // Row 1 是標題 (A: Date, B: Type, C: Name1, D: Name2...)
+                const header = rows[0];
+                const playerNames = header.slice(2); // 從索引 2 (即 C 欄) 開始拿人名
+                
+                let stats = {};
                 playerNames.forEach(name => {
-                    if(name) scoreboard[name] = { sum: 0, games: 0 };
+                    if(name) stats[name] = { total: 0, count: 0 };
                 });
 
-                // 逐行計分 (由第二行開始)
+                // 從 Row 2 開始累加數據 (數據從 index 1 開始)
                 rows.slice(1).forEach(cols => {
-                    playerNames.forEach((name, index) => {
-                        const score = parseInt(cols[index + 2]);
+                    playerNames.forEach((name, i) => {
+                        const scoreStr = cols[i + 2]; // 對應 C 欄及之後
+                        const score = parseInt(scoreStr);
                         if (!isNaN(score)) {
-                            scoreboard[name].sum += score;
-                            scoreboard[name].games += 1;
+                            stats[name].total += score;
+                            stats[name].count += 1;
                         }
                     });
                 });
 
-                // 轉做 Array 並排序
-                const sorted = Object.keys(scoreboard)
-                    .map(name => ({ name, sum: scoreboard[name].sum, games: scoreboard[name].games }))
-                    .sort((a, b) => b.sum - a.sum);
+                // 排序：分數最高排第一
+                const sorted = Object.keys(stats)
+                    .map(name => ({ name, total: stats[name].total, count: stats[name].count }))
+                    .filter(p => p.name !== "")
+                    .sort((a, b) => b.total - a.total);
 
-                status.innerText = "✅ 數據更新成功";
+                status.innerText = `✅ 已成功統計 ${rows.length - 1} 場對局`;
 
-                // 渲染畫面
-                list.innerHTML = sorted.map((p, i) => `
-                    <div class="flex items-center justify-between p-5 border-b border-gray-50 last:border-0">
+                // 渲染 HTML
+                board.innerHTML = sorted.map((p, i) => `
+                    <div class="flex items-center justify-between p-6 border-b border-gray-50 last:border-0 hover:bg-emerald-50 transition-colors">
                         <div class="flex items-center gap-4">
-                            <span class="text-lg font-black ${i < 3 ? 'text-amber-500' : 'text-gray-300'}">${i + 1}</span>
+                            <span class="text-xl font-black ${i < 3 ? 'text-amber-500' : 'text-gray-200'}">${i + 1}</span>
                             <div>
-                                <div class="font-black text-gray-800 text-lg">${p.name}</div>
-                                <div class="text-[9px] text-gray-400 font-bold uppercase">Mahjong Pro</div>
+                                <div class="font-black text-gray-800 text-lg leading-tight">${p.name}</div>
+                                <div class="text-[9px] font-bold text-emerald-500 bg-emerald-100 px-1.5 py-0.5 rounded mt-1 inline-block uppercase">Player</div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-xl font-black ${p.sum >= 0 ? 'text-emerald-600' : 'text-red-500'}">
-                                ${p.sum > 0 ? '+' : ''}${p.sum}
+                            <div class="text-2xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-500'}">
+                                ${p.total > 0 ? '+' : ''}${p.total}
                             </div>
-                            <div class="text-[10px] text-gray-400 font-bold">${p.games} 局</div>
+                            <div class="text-[10px] text-gray-400 font-bold">${p.count} 場對局</div>
                         </div>
                     </div>
                 `).join('');
 
-            } catch (err) {
-                status.innerText = "❌ 失敗";
-                list.innerHTML = `<div class="p-10 text-center text-red-500 font-bold text-sm">${err.message}</div>`;
+            } catch (e) {
+                status.innerText = "❌ 連接失敗";
+                board.innerHTML = `<div class="p-10 text-center text-red-500 text-xs font-bold leading-relaxed">${e.message}</div>`;
             }
         }
 
-        window.onload = loadData;
+        window.onload = main;
     </script>
 </body>
 </html>
