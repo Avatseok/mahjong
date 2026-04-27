@@ -38,7 +38,12 @@
 
         let allMatches = []; // 儲存所有對局原始數據
         let currentView = 'all';
-
+// 將名字轉為：首字母大楷，其餘細楷 (例如 aVa -> Ava)
+function formatName(name) {
+    if (!name) return "";
+    const cleanName = name.trim().toLowerCase();
+    return cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+}
         async function init() {
             try {
                 const response = await fetch(URL);
@@ -74,7 +79,7 @@
                 segments.forEach(seg => {
                     const matchData = seg.trim().match(/^(.+?)\s+([+-]?\d+)$/);
                     if (matchData) {
-                        const name = matchData[1].trim();
+                        const name = formatName(matchData[1]);
                         const score = parseInt(matchData[2]);
                         if (!stats[name]) stats[name] = { total: 0, games: 0 };
                         stats[name].total += score;
