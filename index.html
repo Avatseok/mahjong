@@ -407,13 +407,13 @@ function renderPersonal() {
                     <div>
                         <p class="text-emerald-600 font-black mb-2">最旺貴人 (同場得分最高)</p>
                         <ul class="font-bold space-y-2 text-xs">
-                            ${buddyList.map((b, i) => `<li class="flex justify-between">${i+1}. ${b[0]} <span class="text-emerald-500">+$${b[1]}</span></li>`).join('')}
+                            ${buddyList.map((b, i) => `<li class="flex justify-between">${i+1}. ${b[0]} <span class="text-emerald-500">+$${Math.round(b[1])}</span></li>`).join('')}
                         </ul>
                     </div>
                     <div>
                         <p class="text-red-600 font-black mb-2">剋星天敵 (同場失分最高)</p>
                         <ul class="font-bold space-y-2 text-xs">
-                            ${nemesisList.map((n, i) => `<li class="flex justify-between">${i+1}. ${n[0]} <span class="text-red-500">$${n[1]}</span></li>`).join('')}
+                            ${nemesisList.map((n, i) => `<li class="flex justify-between">${i+1}. ${n[0]} <span class="text-red-500">$${Math.round(n[1])}</span></li>`).join('')}
                         </ul>
                     </div>
                 </div>
