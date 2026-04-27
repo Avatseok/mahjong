@@ -242,36 +242,45 @@
             renderRankTable(year);
         }
 
-        function renderRankTable(year) {
+       function renderRankTable(year) {
             const container = document.getElementById('rankContainer');
             const sorted = Object.keys(playerStats).map(name => {
-    let val, games;
-    if (year === 'all') {
-        val = playerStats[name].total;
-        games = playerStats[name].games;
-    } else {
-        // 如果嗰年有玩過，就攞嗰年嘅數，否則係 0
-        const yearlyData = playerStats[name].yearly[year] || { score: 0, games: 0 };
-        val = yearlyData.score;
-        games = yearlyData.games;
-    }
-    return { name, val, games };
-}).filter(p => p.val !== 0).sort((a,b) => b.val - a.val);
-            container.innerHTML = sorted.map((p, i) => `
+                let val, games;
+                if (year === 'all') {
+                    val = playerStats[name].total;
+                    games = playerStats[name].games;
+                } else {
+                    const yearlyData = playerStats[name].yearly[year] || { score: 0, games: 0 };
+                    val = yearlyData.score;
+                    games = yearlyData.games;
+                }
+                return { name, val, games };
+            }).filter(p => p.val !== 0).sort((a,b) => b.val - a.val);
+
+            container.innerHTML = sorted.map((p, i) => {
+                // 喺呢度攞返對應嘅 Emoji 同稱號
+                const info = PLAYER_TITLES[p.name] || PLAYER_TITLES["Default"];
+                
+                return `
                 <div class="rank-row p-4 flex justify-between items-center bg-white ${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">
                     <div class="flex items-center gap-4">
                         <span class="w-6 font-black text-gray-400 italic text-sm">${i+1}</span>
+                        <div class="text-2xl">${info.emoji}</div>
                         <div>
-                            <p class="font-black text-emerald-900">${p.name}</p>
-                            <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter italic">Player Rank</p>
+                            <div class="flex items-center gap-2">
+                                <p class="font-black text-emerald-900">${p.name}</p>
+                            </div>
+                            <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest italic">${info.title}</p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-black text-sm ${p.val >= 0 ? 'text-emerald-600' : 'text-red-600'}">${p.val > 0 ? '+' : ''}${p.val}</p>
+                        <p class="font-black text-sm ${p.val >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                            ${p.val > 0 ? '+' : ''}${p.val}
+                        </p>
                         <p class="text-[10px] text-gray-400 font-bold">${p.games} 局</p>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
        function renderHall() {
