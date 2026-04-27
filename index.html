@@ -305,7 +305,7 @@
         const topNemesis = nemesisEntries.length > 0 && nemesisEntries[0][1] < 0 ? nemesisEntries[0] : ["--", 0];
 
         return `
-            <div class="tile-card bg-white p-5 shadow-sm flex flex-col border-l-8 border-emerald-500 hover:shadow-md transition-shadow relative overflow-hidden">
+        <div onclick="viewPlayer('${p.name}')" class="tile-card cursor-pointer bg-white p-5 shadow-sm flex flex-col border-l-8 border-emerald-500 hover:shadow-md transition-shadow relative overflow-hidden group">
                 <div class="absolute top-0 right-0 bg-emerald-50 px-3 py-1 rounded-bl-xl border-b border-l border-emerald-100">
                     <span class="text-[9px] font-black text-emerald-600 uppercase">Played: ${p.games}</span>
                 </div>
@@ -504,15 +504,17 @@ function renderPersonal(targetName = 'Ava') {
             renderPersonal();
         }
 function viewPlayer(name) {
-    // 1. 先將 Ava 嘅 logic 暫時套用到點擊嘅人身上 (如果你想睇嗰個人嘅數據)
-    // 注意：目前 renderPersonal 係 hardcode 咗睇 'Ava'，
-    // 如果要睇所有人，需要將 renderPersonal 改成接受參數，呢個你可以遲啲再改。
+    // 執行個人戰績更新
+    renderPersonal(name); 
     
-    // 2. 切換去 Tab 3
-    const personalBtn = document.querySelectorAll('.nav-btn')[2]; // 第三個掣
+    // 搵返導航欄上面「個人戰績」個掣 (通常係 index 2)
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const personalBtn = navButtons[2]; 
+
+    // 切換 Tab
     switchTab('tab3', personalBtn);
     
-    // 3. 畫面捲動返上去
+    // 捲動返去頂部
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
         window.onload = init;
