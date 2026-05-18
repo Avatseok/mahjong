@@ -221,17 +221,16 @@ if (me.score > p.maxWin) p.maxWin = me.score;
 if (me.score < p.minWin) p.minWin = me.score; 
 
 // 2. 新「真金白銀」提款/進貢演算法
+// 2. 新「真金白銀」相對勝負演算法（精準對齊版）
 matchSummary.forEach(other => {
     if (me.name === other.name) return; // 自己不計
 
-    // 如果我贏錢，而對方輸錢：代表我從對方身上提款
-    if (me.score > 0 && other.score < 0) {
-        p.buddies[other.name] = (p.buddies[other.name] || 0) + Math.abs(other.score);
-    }
-    // 如果我輸錢，而對方贏錢：代表我進貢給對方（記為負數）
-    if (me.score < 0 && other.score > 0) {
-        p.buddies[other.name] = (p.buddies[other.name] || 0) - Math.abs(me.score);
-    }
+    // 計算我跟這個對手在這局的相對點數差距
+    // 例如：我贏 +100，他輸 -200 -> 相對差距是 300 分
+    const netGain = me.score - other.score;
+    
+    // 除以總人數作為每人的權重，確保總數對齊，不會出現玄學爆分
+    p.buddies[other.name] = (p.buddies[other.name] || 0) + (netGain / matchSummary.length);
 });
             
             if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
