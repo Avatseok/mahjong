@@ -199,13 +199,40 @@
         }).filter(x => x);
 
         matchSummary.forEach(me => {
-            if (!playerStats[me.name]) {
-                playerStats[me.name] = { 
-                    total: 0, games: 0, wins: 0, maxWin: 0, 
-                    maxStreak: 0, currentStreak: 0,
-                    yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
-                    buddies: {} 
-                };
+           if (!playerStats[me.name]) {
+    playerStats[me.name] = { 
+        total: 0, games: 0, wins: 0, 
+        maxWin: 0,  
+        minWin: 0,  // 新加：一局輸最多
+        maxStreak: 0, currentStreak: 0,
+        yearly: {}, typeBreakdown: { 'hk': 0, 'tai': 0 }, 
+        buddies: {} // 用來記金錢恩怨
+    };
+}
+
+const p = playerStats[me.name];
+p.games += 1;
+p.total += me.score;
+if (me.score > 0) { p.wins += 1; p.currentStreak += 1; } else { p.currentStreak = 0; }
+if (p.currentStreak > p.maxStreak) p.maxStreak = p.currentStreak;
+
+// 1. 紀錄極限輸贏
+if (me.score > p.maxWin) p.maxWin = me.score;
+if (me.score < p.minWin) p.minWin = me.score; 
+
+// 2. 新「真金白銀」提款/進貢演算法
+currentPlayers.forEach(other => {
+    if (me.name === other.name) return; // 自己不計
+
+    // 如果我贏錢，而對方輸錢：代表我從對方身上提款
+    if (me.score > 0 && other.score < 0) {
+        p.buddies[other.name] = (p.buddies[other.name] || 0) + Math.abs(other.score);
+    }
+    // 如果我輸錢，而對方贏錢：代表我進貢給對方（記為負數）
+    if (me.score < 0 && other.score > 0) {
+        p.buddies[other.name] = (p.buddies[other.name] || 0) - Math.abs(me.score);
+    }
+});
             }
 
             const p = playerStats[me.name];
@@ -219,6 +246,8 @@
             } else { p.currentStreak = 0; }
             
             if (me.score > p.maxWin) p.maxWin = me.score;
+            if (me.score < p.minWin) p.minWin = me.score; // 紀錄最低分 (新加)
+            
             if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
             p.yearly[match.year].score += me.score;
             p.yearly[match.year].games += 1;
@@ -386,15 +415,14 @@ function renderPersonal(targetName) {
     const container = document.getElementById('personalHero');
     const selector = document.getElementById('playerSelector');
     
-    // 如果冇傳名入嚟就用選單個名，或者預設 Ava
+    // 優先順序：傳入的名字 > 下拉選單選中的名字 > 預設 Ava
     const nameToShow = targetName || (selector ? selector.value : 'Ava');
     const p = playerStats[nameToShow];
+    
     if (!p) return;
 
-    // 2. 自動同步下拉式選單嘅位置
-    if (selector) {
-        selector.value = nameToShow;
-    }
+    // 同步下拉選單的顯示文字
+    if (selector) selector.value = nameToShow;
 
     // 3. 準備數據：排序搵出最強貴人同剋星
     const buddyList = Object.entries(p.buddies || {})
@@ -460,47 +488,39 @@ function renderPersonal(targetName) {
                 </div>
             </div>
 
-            <div class="md:col-span-3 tile-card p-6 bg-white">
-                <h3 class="font-black text-emerald-900 mb-4 border-b pb-2 text-center">🏅 生涯成就</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-amber-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-amber-800">最高連勝</p>
-                        <p class="text-3xl font-black text-amber-600">${p.maxStreak || 0} 局</p>
-                    </div>
-                    <div class="bg-emerald-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-emerald-800">單局最高</p>
-                        <p class="text-3xl font-black text-emerald-600">+${Math.round(p.maxWin)}</p>
-                    </div>
-                    <div class="bg-blue-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-blue-800">總勝率</p>
-                        <p class="text-3xl font-black text-blue-600">${((p.wins / p.games) * 100).toFixed(1)}%</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-xl text-center">
-                        <p class="text-[10px] font-bold text-gray-800">總對局數</p>
-                        <p class="text-3xl font-black text-gray-600">${p.games}</p>
+           <div class="md:col-span-3 tile-card p-6 bg-white">
+    <h3 class="font-black text-emerald-900 mb-4 border-b pb-2 text-center">🏅 生涯成就</h3>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="bg-emerald-50 p-4 rounded-xl text-center border border-emerald-100">
+            <p class="text-[10px] font-bold text-emerald-800 uppercase">一局贏最多</p>
+            <p class="text-2xl font-black text-emerald-600">+${Math.round(p.maxWin || 0)}</p>
+        </div>
+        <div class="bg-red-50 p-4 rounded-xl text-center border border-red-100">
+            <p class="text-[10px] font-bold text-red-800 uppercase">一局輸最多</p>
+            <p class="text-2xl font-black text-red-600">${Math.round(p.minWin || 0)}</p>
+        </div>
+        <div class="bg-amber-50 p-4 rounded-xl text-center border border-amber-100">
+            <p class="text-[10px] font-bold text-amber-800 uppercase">最高連勝</p>
+            <p class="text-2xl font-black text-amber-600">${p.maxStreak || 0} 局</p>
+        </div>
+        <div class="bg-blue-50 p-4 rounded-xl text-center border border-blue-100">
+            <p class="text-[10px] font-bold text-blue-800 uppercase">總勝率</p>
+            <p class="text-2xl font-black text-blue-600">${((p.wins / p.games) * 100).toFixed(1)}%</p>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-xl text-center border border-gray-100">
+            <p class="text-[10px] font-bold text-gray-800 uppercase">總對局數</p>
+            <p class="text-2xl font-black text-gray-600">${p.games}</p>
                     </div>
                 </div>
             </div>
         </div>
     `;
 }
-        function renderAll() {
+function renderAll() {
             renderRankTable('all');
             renderHall();
             renderLogs();
-            renderPersonal();
-        }
-function viewPlayer(name) {
-    // 1. 先將 Ava 嘅 logic 暫時套用到點擊嘅人身上 (如果你想睇嗰個人嘅數據)
-    // 注意：目前 renderPersonal 係 hardcode 咗睇 'Ava'，
-    // 如果要睇所有人，需要將 renderPersonal 改成接受參數，呢個你可以遲啲再改。
-    
-    // 2. 切換去 Tab 3
-    const personalBtn = document.querySelectorAll('.nav-btn')[2]; // 第三個掣
-    switchTab('tab3', personalBtn);
-    
-    // 3. 畫面捲動返上去
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+            renderPersonal('Ava');
 }
         window.onload = init;
     </script>
