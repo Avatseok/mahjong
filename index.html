@@ -221,7 +221,7 @@ if (me.score > p.maxWin) p.maxWin = me.score;
 if (me.score < p.minWin) p.minWin = me.score; 
 
 // 2. 新「真金白銀」提款/進貢演算法
-currentPlayers.forEach(other => {
+matchSummary.forEach(other => {
     if (me.name === other.name) return; // 自己不計
 
     // 如果我贏錢，而對方輸錢：代表我從對方身上提款
@@ -233,32 +233,12 @@ currentPlayers.forEach(other => {
         p.buddies[other.name] = (p.buddies[other.name] || 0) - Math.abs(me.score);
     }
 });
-
-            const p = playerStats[me.name];
-            p.total += me.score;
-            p.games += 1;
-
-            if (me.score > 0) {
-                p.wins += 1;
-                p.currentStreak++;
-                if (p.currentStreak > p.maxStreak) p.maxStreak = p.currentStreak;
-            } else { p.currentStreak = 0; }
-            
-            if (me.score > p.maxWin) p.maxWin = me.score;
-            if (me.score < p.minWin) p.minWin = me.score; // 紀錄最低分 (新加)
             
             if (!p.yearly[match.year]) p.yearly[match.year] = { score: 0, games: 0 };
             p.yearly[match.year].score += me.score;
             p.yearly[match.year].games += 1;
             p.typeBreakdown[match.type.toLowerCase()] = (p.typeBreakdown[match.type.toLowerCase()] || 0) + me.score;
 
-            // --- 精確錢包流向計法 ---
-            matchSummary.forEach(other => {
-                if (me.name === other.name) return;
-                // 將輸贏金額平分給場上其餘 3 人，模擬「從誰手上得到/送給誰」
-                let share = me.score / (matchSummary.length - 1);
-                p.buddies[other.name] = (p.buddies[other.name] || 0) + share;
-            });
         });
     });
 }
