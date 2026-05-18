@@ -417,19 +417,29 @@ function renderPersonal(targetName) {
     // 先抓取該玩家的稱號和點評（如果沒有就用預設）
     const info = PLAYER_TITLES[nameToShow] || PLAYER_TITLES["Default"];
 
-    container.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="tile-card p-6 text-center bg-white flex flex-col justify-center items-center">
-                <div class="text-4xl mb-1">${info.emoji}</div>
-                <h3 class="text-xl font-black text-emerald-900 leading-none mb-1">${nameToShow}</h3>
-                <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-3 italic">【${info.title}】</p>
-                
-                <p class="text-xs font-black text-gray-400 mb-1 uppercase tracking-widest">累積總盈虧</p>
-                <p class="text-5xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'} mb-4">
-                    ${p.total > 0 ? '+' : ''}${Math.round(p.total)}
-                </p>
+  // ✅ 換成這段優化排版：
+    const info = PLAYER_TITLES[nameToShow] || PLAYER_TITLES["Default"];
 
-                <div class="w-full bg-gray-50 p-2.5 rounded-xl border border-gray-100 text-[11px] text-gray-500 italic leading-relaxed">
+    container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+            <div class="tile-card p-5 text-center bg-white flex flex-col justify-between">
+                
+                <div>
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <span class="text-2xl">${info.emoji}</span>
+                        <h3 class="text-xl font-black text-gray-800">${nameToShow}</h3>
+                    </div>
+                    <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-4">【${info.title}】</p>
+                </div>
+                
+                <div class="my-auto">
+                    <p class="text-xs font-black text-gray-400 mb-1 uppercase tracking-widest">累積總盈虧</p>
+                    <p class="text-5xl font-black ${p.total >= 0 ? 'text-emerald-600' : 'text-red-600'}">
+                        ${p.total > 0 ? '+' : ''}${Math.round(p.total)}
+                    </p>
+                </div>
+
+                <div class="mt-4 bg-gray-50 p-2 rounded-xl border border-gray-100 text-[11px] text-gray-500 italic">
                     "${info.comment}"
                 </div>
             </div>
