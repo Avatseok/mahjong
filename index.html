@@ -233,7 +233,6 @@ currentPlayers.forEach(other => {
         p.buddies[other.name] = (p.buddies[other.name] || 0) - Math.abs(me.score);
     }
 });
-            }
 
             const p = playerStats[me.name];
             p.total += me.score;
