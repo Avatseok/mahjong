@@ -437,7 +437,7 @@ function renderPersonal(targetName) {
             <div class="md:col-span-2 tile-card p-6 bg-white">
                 <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">📅 年度戰情</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    ${['2026', '2025', '2024', '2023'].map(yr => `
+                    ${['2026', '2025', '2024'].map(yr => `
                         <div class="text-center p-4 bg-gray-50 rounded-xl">
                             <p class="text-[10px] font-bold text-gray-400">${yr} YTD</p>
                             <p class="text-2xl font-black ${(p.yearly[yr]?.score || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}">
