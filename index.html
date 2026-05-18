@@ -100,7 +100,7 @@
             "Haydrian": { title: "不死鳥", emoji: "🦅", comment: "雖然戰況起伏不定，但韌力極強，總能喺混戰中搵到生機。" },
             "Jack": { title: "送財童子", emoji: "🤡", comment: "熱心推動雀界發展，對手眼中的福利官。" },
             "Yanyi": { title: "技術型刺客", emoji: "🗡️", comment: "打法細膩且穩定，擅長精準打擊對手，勝率相當平均，係實力派代表。" },
-            "Annie": { title: "爆分奇兵", emoji: "🔥", comment: "單局爆發力驚人，隨時一鋪清袋對手，絕對係雀壇核彈。" },
+            "Annie": { title: "派糖天使", emoji: "🎁", comment: "同佢同枱肯定唔會空手而回，化身聖誕老人提早派足全年。" },
             "Gut": { title: "亂流大師", emoji: "🌪️", comment: "打法充滿未知數，經常打亂全場節奏，令對手摸唔清頭緒嘅神奇玩家。" },
             "Colbert": { title: "掠奪者", emoji: "💰", comment: "專門喺大型混戰中奪取高分，眼光獨到，攞分效率極高。" },
             "Kyros": { title: "防禦堡壘", emoji: "🏰", comment: "善於觀察對手，只是尚未掌握贏牌密碼。" },
@@ -401,13 +401,13 @@ function renderPersonal(targetName) {
     if (selector) selector.value = nameToShow;
 
     // 依據累積贏輸金額排序
-    // 提款對象：正數最高（贏對方最多）
+    // 最旺貴人：正數最高（贏對方最多）
     const buddyList = Object.entries(p.buddies || {})
         .filter(a => a[1] > 0)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3);
 
-    // 進貢對象：負數最深（輸畀對方最多）
+    // 天敵剋星：負數最深（輸畀對方最多）
     const nemesisList = Object.entries(p.buddies || {})
         .filter(a => a[1] < 0)
         .sort((a, b) => a[1] - b[1])
@@ -440,13 +440,13 @@ function renderPersonal(targetName) {
                 <h3 class="font-black text-emerald-900 mb-4 border-b pb-2">🔮 牌局玄學</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
                     <div>
-                        <p class="text-emerald-600 font-black mb-2">💎 提款對象 (Top 3)</p>
+                        <p class="text-emerald-600 font-black mb-2">💎 最旺貴人 (Top 3)</p>
                         <ul class="font-bold space-y-2 text-xs">
                             ${buddyList.length > 0 ? buddyList.map((b, i) => `<li class="flex justify-between border-b pb-1">${i+1}. ${b[0]} <span class="text-emerald-500">+$${Math.round(b[1])}</span></li>`).join('') : '<li class="text-gray-400 py-1">暫無提款紀錄</li>'}
                         </ul>
                     </div>
                     <div>
-                        <p class="text-red-600 font-black mb-2">💀 進貢對象 (Top 3)</p>
+                        <p class="text-red-600 font-black mb-2">💀 天敵剋星 (Top 3)</p>
                         <ul class="font-bold space-y-2 text-xs">
                             ${nemesisList.map((n, i) => `<li class="flex justify-between border-b pb-1">${i+1}. ${n[0]} <span class="text-red-500">$${Math.round(n[1])}</span></li>`).join('')}
                         </ul>
